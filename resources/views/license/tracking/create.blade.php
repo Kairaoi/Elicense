@@ -54,10 +54,13 @@
                 </div>
 
                 <div class="card-body">
+                    @if(session('error'))
+                        <div class="alert alert-danger">{{ session('error') }}</div>
+                    @endif
                     <form id="tracking-form" action="{{ route('license.trackings.store') }}" method="POST">
                         @csrf
 
-                        <!-- Common Fields -->
+                        <!-- General Information -->
                         <div class="form-header mb-4">
                             <h5>General Information</h5>
                         </div>
@@ -72,7 +75,9 @@
                                             <option value="{{ $id }}">{{ $name }}</option>
                                         @endforeach
                                     </select>
-                                    <div class="invalid-feedback" id="agent_id-error"></div>
+                                    @error('agent_id')
+                                        <div class="text-danger">{{ $message }}</div>
+                                    @enderror
                                 </div>
                             </div>
 
@@ -85,7 +90,9 @@
                                             <option value="{{ $id }}">{{ $name }}</option>
                                         @endforeach
                                     </select>
-                                    <div class="invalid-feedback" id="island_id-error"></div>
+                                    @error('island_id')
+                                        <div class="text-danger">{{ $message }}</div>
+                                    @enderror
                                 </div>
                             </div>
 
@@ -100,12 +107,14 @@
                                             </option>
                                         @endfor
                                     </select>
-                                    <div class="invalid-feedback" id="year-error"></div>
+                                    @error('year')
+                                        <div class="text-danger">{{ $message }}</div>
+                                    @enderror
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Species Rows Container -->
+                        <!-- Species Rows -->
                         <div id="species-container">
                             <!-- Species rows will be dynamically added here -->
                         </div>
@@ -139,7 +148,6 @@
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 let rowCounter = 0;
 
@@ -156,7 +164,7 @@ function addSpeciesRow() {
     const rowHtml = `
         <div class="species-row" id="species-row-${rowCounter}">
             <div class="row">
-                <div class="col-md-5">
+                <div class="col-md-8">
                     <div class="form-group">
                         <label class="form-label required-field">Species</label>
                         <select class="form-control species-select" 
@@ -167,22 +175,9 @@ function addSpeciesRow() {
                                 <option value="{{ $id }}">{{ $name }}</option>
                             @endforeach
                         </select>
-                        <div class="invalid-feedback"></div>
                     </div>
                 </div>
-                <div class="col-md-5">
-                    <div class="form-group">
-                        <label class="form-label required-field">Quota Allocated (kg)</label>
-                        <input type="number" 
-                               class="form-control" 
-                               name="species[${rowCounter}][quota_allocated]" 
-                               required 
-                               min="0" 
-                               step="0.01">
-                        <div class="invalid-feedback"></div>
-                    </div>
-                </div>
-                <div class="col-md-2 d-flex align-items-end">
+                <div class="col-md-4 d-flex align-items-end">
                     <button type="button" 
                             class="btn btn-danger w-100" 
                             onclick="removeSpeciesRow(${rowCounter})">
@@ -199,8 +194,7 @@ function addSpeciesRow() {
 }
 
 function removeSpeciesRow(rowId) {
-    const row = document.getElementById(`species-row-${rowId}`);
-    row.remove();
+    document.getElementById(`species-row-${rowId}`).remove();
 }
 
 $(document).ready(function() {
@@ -211,62 +205,6 @@ $(document).ready(function() {
     });
 
     addSpeciesRow();
-
-    $('#tracking-form').on('submit', function(e) {
-        e.preventDefault();
-
-        $('.is-invalid').removeClass('is-invalid');
-        $('.invalid-feedback').empty();
-
-        if ($('.species-row').length === 0) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Validation Error',
-                text: 'Please add at least one species'
-            });
-            return;
-        }
-
-        const submitBtn = $(this).find('button[type="submit"]');
-        const originalBtnText = submitBtn.html();
-        submitBtn.html('<i class="fas fa-spinner fa-spin"></i> Processing...').prop('disabled', true);
-
-        $.ajax({
-            url: $(this).attr('action'),
-            method: 'POST',
-            data: $(this).serialize(),
-            success: function(response) {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success!',
-                    text: response.message || 'Species tracking created successfully',
-                    showConfirmButton: false,
-                    timer: 1500
-                }).then(() => {
-                    window.location.href = "{{ route('license.trackings.index') }}";
-                });
-            },
-            error: function(xhr) {
-                submitBtn.html(originalBtnText).prop('disabled', false);
-
-                if (xhr.status === 422) {
-                    const errors = xhr.responseJSON.errors;
-                    Object.keys(errors).forEach(function(key) {
-                        const input = $(`[name="${key}"]`);
-                        input.addClass('is-invalid')
-                            .siblings('.invalid-feedback')
-                            .text(errors[key][0]);
-                    });
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error!',
-                        text: xhr.responseJSON.message || 'An error occurred while creating the record'
-                    });
-                }
-            }
-        });
-    });
 });
 </script>
 @endpush

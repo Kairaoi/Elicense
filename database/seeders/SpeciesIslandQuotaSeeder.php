@@ -33,7 +33,7 @@ class SpeciesIslandQuotaSeeder extends Seeder
                     'island_id'       => $island->id,
                     'island_quota'    => rand(100, 1000), // Random quota
                     'remaining_quota' => rand(50, 500),   // Random remaining quota
-                    'year'            => rand(2020, 2024), // Random year
+                    'year'           => 2025,  // Random year
                     'created_by'      => $user->id,        // Creator (first user)
                     'updated_by'      => $user->id,        // Updated by (first user)
                     'created_at'      => now(),

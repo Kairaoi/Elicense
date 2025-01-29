@@ -6,9 +6,9 @@
 <style>
     .quota-info {
         background-color: #f8f9fa;
-        padding: 15px;
+        padding: 10px;
         border-radius: 8px;
-        margin-bottom: 20px;
+        margin-bottom: 15px;
     }
 
     .quota-info .label {
@@ -17,13 +17,61 @@
     }
 
     .quota-info .value {
-        font-size: 1.1em;
+        font-size: 1em;
         font-weight: 600;
     }
 
     .required-field::after {
         content: " *";
         color: red;
+    }
+
+    .quota-item, .harvest-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+        gap: 10px; /* Add some space between elements */
+    }
+
+    .quota-item .species-name, .harvest-item .species-name {
+        font-weight: 600;
+        flex: 2;
+        font-size: 1em;
+    }
+
+    .quota-item .quota-value, .harvest-item .quantity-input {
+        font-size: 1em;
+        flex: 1;
+        text-align: right;
+    }
+
+    .quota-item .quota-value {
+        color: #28a745; /* Green color for available quota */
+    }
+
+    .harvest-item .quantity-input input {
+        width: 100%;
+        padding: 8px;
+        font-size: 0.95em;
+        text-align: right;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-group label {
+        font-size: 0.95em;
+    }
+
+    .form-control {
+        font-size: 0.95em;
+    }
+
+    .btn {
+        font-size: 0.95em;
+        padding: 8px 16px;
     }
 </style>
 @endpush
@@ -43,18 +91,18 @@
                     <form action="{{ route('license.monthly-harvests.store') }}" method="POST" id="harvest-form">
                         @csrf
 
-                        <!-- Agent Selection -->
+                        <!-- Applicant Selection -->
                         <div class="form-group mb-3">
-                            <label for="agent_id" class="form-label required-field">Agent</label>
-                            <select name="agent_id" id="agent_id" class="form-control @error('agent_id') is-invalid @enderror" required>
-                                <option value="">Select Agent</option>
-                                @foreach($agents as $id => $name)
-                                    <option value="{{ $id }}" {{ old('agent_id') == $id ? 'selected' : '' }}>
+                            <label for="applicant_id" class="form-label required-field">Applicant</label>
+                            <select name="applicant_id" id="applicant_id" class="form-control @error('applicant_id') is-invalid @enderror" required>
+                                <option value="">Select Applicant</option>
+                                @foreach($applicants as $id => $name)
+                                    <option value="{{ $id }}" {{ old('applicant_id') == $id ? 'selected' : '' }}>
                                         {{ $name }}
                                     </option>
                                 @endforeach
                             </select>
-                            @error('agent_id')
+                            @error('applicant_id')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
@@ -75,86 +123,58 @@
                             @enderror
                         </div>
 
-                        <!-- Year Selection -->
+                        <!-- License Items and Harvest Quantity -->
                         <div class="form-group mb-3">
-                            <label for="year" class="form-label required-field">Year</label>
-                            <select name="year" id="year" class="form-control @error('year') is-invalid @enderror" required>
-                                <option value="">Select Year</option>
-                                @foreach($years as $value => $label)
-                                    <option value="{{ $value }}" {{ old('year') == $value ? 'selected' : '' }}>
-                                        {{ $label }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('year')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <label class="form-label required-field">License Items and Harvest Quantity</label>
+                            <div id="license-items-container">
+                                <!-- License items will be loaded here via AJAX -->
+                            </div>
                         </div>
 
-                        <!-- Month Selection -->
-                        <div class="form-group mb-3">
-                            <label for="month" class="form-label required-field">Month</label>
-                            <select name="month" id="month" class="form-control @error('month') is-invalid @enderror" required>
-                                <option value="">Select Month</option>
-                                @foreach($months as $value => $label)
-                                    <option value="{{ $value }}" {{ old('month') == $value ? 'selected' : '' }}>
-                                        {{ $label }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('month')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                        <!-- Year and Month Selection -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="year" class="form-label required-field">Year</label>
+                                    <select name="year" id="year" class="form-control @error('year') is-invalid @enderror" required>
+                                        <option value="">Select Year</option>
+                                        @foreach($years as $year)
+                                            <option value="{{ $year }}" {{ old('year') == $year ? 'selected' : '' }}>
+                                                {{ $year }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('year')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="month" class="form-label required-field">Month</label>
+                                    <select name="month" id="month" class="form-control @error('month') is-invalid @enderror" required>
+                                        <option value="">Select Month</option>
+                                        @foreach($months as $value => $label)
+                                            <option value="{{ $value }}" {{ old('month') == $value ? 'selected' : '' }}>
+                                                {{ $label }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('month')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
                         </div>
-
-                        <!-- Species Selection with Quantity -->
-                 
-<div class="form-group mb-3">
-    <label for="species" class="form-label required-field">Species and Quantity Harvested</label>
-    <div id="species-selection">
-        <div class="d-flex mb-2">
-            <select name="species[]" 
-                    class="form-control species-select me-2 @error('species.*') is-invalid @enderror" 
-                    required>
-                <option value="">Select Species</option>
-                @foreach($speciesTrackings as $id => $name)
-                    <option value="{{ $id }}" {{ old('species') && in_array($id, old('species', [])) ? 'selected' : '' }}>
-                        {{ $name }}
-                    </option>
-                @endforeach
-            </select>
-            <input type="number" 
-                   name="quantities[]" 
-                   class="form-control quantity-input @error('quantities.*') is-invalid @enderror" 
-                   placeholder="Quantity (kg)" 
-                   min="0" 
-                   step="0.01" 
-                   required>
-            <button type="button" class="btn btn-danger remove-species">
-                <i class="fas fa-trash-alt"></i>
-            </button>
-        </div>
-    </div>
-    <button type="button" id="add-species" class="btn btn-success btn-sm">
-        <i class="fas fa-plus"></i> Add Species
-    </button>
-    @error('species.*')
-        <div class="invalid-feedback">{{ $message }}</div>
-    @enderror
-    @error('quantities.*')
-        <div class="invalid-feedback">{{ $message }}</div>
-    @enderror
-</div>
-
 
                         <!-- Notes -->
                         <div class="form-group mb-3">
                             <label for="notes" class="form-label">Notes</label>
                             <textarea name="notes" 
-                                      id="notes" 
-                                      class="form-control @error('notes') is-invalid @enderror"
-                                      rows="3"
-                                      maxlength="1000">{{ old('notes') }}</textarea>
+                                    id="notes" 
+                                    class="form-control @error('notes') is-invalid @enderror"
+                                    rows="3"
+                                    maxlength="1000">{{ old('notes') }}</textarea>
                             @error('notes')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -163,7 +183,7 @@
 
                         <!-- Submit Button -->
                         <div class="form-group">
-                            <button type="submit" class="btn btn-primary" id="submit-btn" disabled>
+                            <button type="submit" class="btn btn-primary" id="submit-btn">
                                 <i class="fas fa-save"></i> Record Harvest
                             </button>
                             <a href="{{ route('license.monthly-harvests.index') }}" class="btn btn-secondary">
@@ -181,169 +201,60 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
-    // Function to update the species dropdown based on selected agent and island
-    function updateSpeciesDropdown() {
-        var agentId = $('#agent_id').val();
-        var islandId = $('#island_id').val();
-        
-        // Clear existing species options
-        $('#species-selection').empty();
+    function loadQuota() {
+        const applicantId = $('#applicant_id').val();
+        const islandId = $('#island_id').val();
 
-        // Only make the request if both agent and island are selected
-        if (agentId && islandId) {
-            $.ajax({
-                url: '{{ route("license.getSpecies") }}',
-                method: 'GET',
-                data: {
-                    agent_id: agentId,
-                    island_id: islandId
-                },
-                success: function(response) {
-                    if (response.success && response.species.length > 0) {
-                        // Add initial species row
-                        addSpeciesRow(response.species);
-                        
-                        // Enable the add species button
-                        $('#add-species').prop('disabled', false);
-                        
-                        // Store species data for later use
-                        window.availableSpecies = response.species;
+        if (applicantId && islandId) {
+            const url = "{{ route('license.getLicenseItems') }}";
+
+            $.get(url, { applicant_id: applicantId, island_id: islandId })
+                .done(function(response) {
+                    console.log('API Response:', response); // Debugging log
+
+                    if (response.success && response.items.length > 0) {
+                        let licenseItemsHtml = '';  // For generating the input fields
+
+                        response.items.forEach(function(item) {
+                            // Generate the HTML for each species with requested and available quota, and quantity input
+                            licenseItemsHtml += `
+                                <div class="harvest-item">
+                                    <div class="species-name">${item.species_name}</div>
+                                    <div class="quota-value">
+                                        Requested: ${item.requested_quota} kg | Available: ${item.remaining_quota} kg
+                                    </div>
+                                    <div class="quantity-input">
+                                        <input type="number" 
+                                               name="harvested_quantity[${item.id}]" 
+                                               id="harvested_quantity_${item.id}" 
+                                               class="form-control @error('harvested_quantity.${item.id}') is-invalid @enderror"
+                                               step="0.01"
+                                               min="0"
+                                               required>
+                                        @error('harvested_quantity.${item.id}')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                            `;
+                        });
+
+                        $('#license-items-container').html(licenseItemsHtml); // Show all input fields for quantity harvested side by side
                     } else {
-                        $('#species-selection').html(
-                            '<div class="alert alert-info">No species available for the selected agent and island.</div>'
-                        );
-                        $('#add-species').prop('disabled', true);
+                        $('#license-items-container').html('No quota information available for this selection.');
                     }
-                },
-                error: function(xhr, status, error) {
-                    console.error('Error fetching species data:', error);
-                    $('#species-selection').html(
-                        '<div class="alert alert-danger">Error loading species data. Please try again.</div>'
-                    );
-                    $('#add-species').prop('disabled', true);
-                }
-            });
+                })
+                .fail(function(jqXHR, textStatus, errorThrown) {
+                    console.error('AJAX Error:', jqXHR.responseText);
+                    $('#license-items-container').html('An error occurred while loading data.');
+                });
         } else {
-            $('#add-species').prop('disabled', true);
+            $('#license-items-container').html('Please select an applicant and island.');
         }
     }
 
-    // Function to add a new species row
-    function addSpeciesRow(speciesData) {
-        var row = `
-            <div class="d-flex mb-2">
-                <select name="species[]" class="form-control species-select me-2" required>
-                    <option value="">Select Species</option>
-                    ${speciesData.map(species => `
-                        <option value="${species.id}">
-                            ${species.name} (Remaining: ${species.remaining_quota} kg)
-                        </option>
-                    `).join('')}
-                </select>
-                <input type="number" 
-                       name="quantities[]" 
-                       class="form-control quantity-input" 
-                       placeholder="Quantity (kg)" 
-                       min="0" 
-                       step="0.01" 
-                       required>
-                <button type="button" class="btn btn-danger remove-species ms-2">
-                    <i class="fas fa-trash-alt"></i>
-                </button>
-            </div>
-        `;
-        $('#species-selection').append(row);
-    }
-
-    // Event handlers
-    $('#agent_id, #island_id').change(updateSpeciesDropdown);
-    
-    $('#add-species').click(function() {
-        if (window.availableSpecies) {
-            addSpeciesRow(window.availableSpecies);
-        }
-    });
-
-    // Remove species row
-    $('#species-selection').on('click', '.remove-species', function() {
-        $(this).closest('.d-flex').remove();
-    });
-
-    // Initial load
-    updateSpeciesDropdown();
+    // Trigger quota loading when applicant or island is changed
+    $('#applicant_id, #island_id').change(loadQuota);
 });
-$(document).ready(function() {
-    // Existing code remains the same...
-
-    // Add this function to check if the form is valid
-    function checkFormValidity() {
-        var isValid = true;
-        
-        // Check if agent is selected
-        if (!$('#agent_id').val()) {
-            isValid = false;
-        }
-        
-        // Check if island is selected
-        if (!$('#island_id').val()) {
-            isValid = false;
-        }
-        
-        // Check if year is selected
-        if (!$('#year').val()) {
-            isValid = false;
-        }
-        
-        // Check if month is selected
-        if (!$('#month').val()) {
-            isValid = false;
-        }
-        
-        // Check if at least one species is selected and has a quantity
-        var hasValidSpecies = false;
-        $('#species-selection .d-flex').each(function() {
-            var speciesSelect = $(this).find('select[name="species[]"]').val();
-            var quantityInput = $(this).find('input[name="quantities[]"]').val();
-            
-            if (speciesSelect && quantityInput && quantityInput > 0) {
-                hasValidSpecies = true;
-            }
-        });
-        
-        if (!hasValidSpecies) {
-            isValid = false;
-        }
-        
-        // Enable or disable submit button based on form validity
-        $('#submit-btn').prop('disabled', !isValid);
-    }
-
-    // Add event listeners for form fields
-    $('#agent_id, #island_id, #year, #month').on('change', checkFormValidity);
-    
-    // Monitor species selection changes
-    $('#species-selection').on('change', 'select, input', checkFormValidity);
-    $('#species-selection').on('keyup', 'input', checkFormValidity);
-    
-    // Add to your existing addSpeciesRow function
-    function addSpeciesRow(speciesData) {
-        // Existing row creation code...
-        
-        // After adding the row, check form validity
-        checkFormValidity();
-    }
-    
-    // Add to your existing remove species click handler
-    $('#species-selection').on('click', '.remove-species', function() {
-        $(this).closest('.d-flex').remove();
-        checkFormValidity();  // Check validity after removing
-    });
-
-    // Initial check
-    checkFormValidity();
-});
-
 </script>
-
-
 @endpush

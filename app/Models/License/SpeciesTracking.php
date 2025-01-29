@@ -15,15 +15,12 @@ class SpeciesTracking extends Model
     protected $table = 'species_tracking';
 
     protected $fillable = [
-        'species_id',
+        'species_island_quota_id',
         'agent_id',
-        'island_id',
-        'year',
-        'quota_allocated',
         'quota_used',
         'remaining_quota',
         'created_by',
-        'updated_by'
+        'updated_by',
     ];
 
     public function species()

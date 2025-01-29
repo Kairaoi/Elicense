@@ -8,6 +8,7 @@ use App\Repositories\License\AgentsRepository;
 use App\Repositories\Reference\IslandsRepository;
 use App\Repositories\License\SpeciesRepository;
 use App\Models\License\SpeciesTracking;
+use App\Models\License\SpeciesIslandQuota;
 use App\Services\QuotaValidationService;
 use App\Models\License\LicenseItem;
 use App\Models\License\IslandQuotaHistory;
@@ -74,82 +75,83 @@ class SpeciesTrackingController extends Controller
             'year' => 'required|integer',
             'species' => 'required|array',
             'species.*.species_id' => 'required|exists:species,id',
-            'species.*.quota_allocated' => 'required|numeric|min:0',
         ]);
 
-        $savedRecords = []; // Array to store created records
+        // Log validated data
+        Log::info('Validated Data:', $data);
 
         foreach ($request->species as $speciesData) {
             $speciesId = $speciesData['species_id'];
-            $quotaAllocated = $speciesData['quota_allocated'];
 
-            Log::info('Processing species:', [
+            // Fetch species_island_quota record
+            Log::info('Fetching Species Island Quota for:', [
                 'species_id' => $speciesId,
-                'quota' => $quotaAllocated
+                'island_id' => $data['island_id'],
+                'year' => $data['year'],
             ]);
-
-            // Check for existing record
-            $exists = SpeciesTracking::where('species_id', $speciesId)
-                ->where('agent_id', $data['agent_id'])
+            $speciesIslandQuota = SpeciesIslandQuota::where('species_id', $speciesId)
                 ->where('island_id', $data['island_id'])
                 ->where('year', $data['year'])
-                ->exists();
+                ->first();
 
-            if ($exists) {
+            if (!$speciesIslandQuota) {
+                Log::error('No quota found for Species Island Quota:', [
+                    'species_id' => $speciesId,
+                    'island_id' => $data['island_id'],
+                    'year' => $data['year'],
+                ]);
                 DB::rollBack();
                 return redirect()->back()
                     ->withInput()
-                    ->with('error', "E a kaman exist te tracking record ibukin Species ID {$speciesId}");
+                    ->with('error', "No quota found for Species ID {$speciesId}, Island ID {$data['island_id']}, and Year {$data['year']}.");
+            }
+
+            Log::info('Processing species:', [
+                'species_id' => $speciesId,
+                'species_island_quota_id' => $speciesIslandQuota->id,
+            ]);
+
+            // Check for existing record
+            Log::info('Checking if tracking record exists for Species Island Quota:', [
+                'species_island_quota_id' => $speciesIslandQuota->id,
+                'agent_id' => $data['agent_id'],
+            ]);
+            $exists = SpeciesTracking::where('species_island_quota_id', $speciesIslandQuota->id)
+                ->where('agent_id', $data['agent_id'])
+                ->exists();
+
+            if ($exists) {
+                Log::error('Tracking record already exists for Species ID:', [
+                    'species_id' => $speciesId,
+                    'agent_id' => $data['agent_id'],
+                ]);
+                DB::rollBack();
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', "A tracking record already exists for Species ID {$speciesId}.");
             }
 
             // Create tracking record
             $trackingData = [
-                'species_id' => $speciesId,
+                'species_island_quota_id' => $speciesIslandQuota->id,
                 'agent_id' => $data['agent_id'],
-                'island_id' => $data['island_id'],
-                'year' => $data['year'],
-                'quota_allocated' => $quotaAllocated,
-                'quota_used' => 0,
-                'remaining_quota' => $quotaAllocated,
+                'quota_used' => 0, // Initially no quota is used
+                'remaining_quota' => $speciesIslandQuota->quota_allocated, // Initially equal to allocated quota
                 'created_by' => auth()->id(),
             ];
 
-            // Log before saving
             Log::info('Attempting to save tracking data:', $trackingData);
 
             // Create and store the record
-            $record = SpeciesTracking::create($trackingData);
-
-            // Log after saving
-            Log::info('Record created with ID: ' . $record->id);
-
-            // Store created record
-            $savedRecords[] = $record;
-        }
-
-        // Double check that records were saved
-        foreach ($savedRecords as $record) {
-            $dbRecord = SpeciesTracking::find($record->id);
-            if (!$dbRecord) {
-                DB::rollBack();
-                Log::error('Failed to verify saved record:', ['id' => $record->id]);
-                return redirect()->back()
-                    ->withInput()
-                    ->with('error', 'E aki nakoraoi te kawakinan rongorongo.');
-            }
+            SpeciesTracking::create($trackingData);
         }
 
         DB::commit();
 
-        // Log final confirmation
-        Log::info('Successfully saved records:', [
-            'count' => count($savedRecords),
-            'records' => $savedRecords
-        ]);
+        Log::info('Tracking records created successfully.');
 
         return redirect()->route('license.tracking.index')
-            ->with('success', 'E tia n rin raoi am rongorongo.');
-
+            ->with('success', 'Records created successfully.');
     } catch (\Exception $e) {
         DB::rollBack();
         Log::error('Species tracking creation failed', [
@@ -159,7 +161,7 @@ class SpeciesTrackingController extends Controller
 
         return redirect()->back()
             ->withInput()
-            ->with('error', 'E aki nakoraoi te kawakinan rongorongo: ' . $e->getMessage());
+            ->with('error', 'Failed to create records: ' . $e->getMessage());
     }
 }
 

@@ -47,4 +47,11 @@ class LicenseItem extends Model
     {
         return $this->belongsTo(User::class, 'updated_by');
     }
+
+    public function getRemainingQuota()
+{
+    return $this->requested_quota - MonthlyHarvest::where('license_item_id', $this->id)->sum('quantity_harvested');
+}
+
+
 }

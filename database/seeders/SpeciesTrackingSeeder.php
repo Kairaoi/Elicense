@@ -6,6 +6,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use App\Models\User;
+use App\Models\License\SpeciesIslandQuota; // Assuming SpeciesIslandQuota model exists
 
 class SpeciesTrackingSeeder extends Seeder
 {
@@ -22,14 +23,11 @@ class SpeciesTrackingSeeder extends Seeder
         // Clear existing data
         DB::table('species_tracking')->truncate();
 
-        // Sample data
+        // Sample data with references to species_island_quotas
         $data = [
             [
-                'species_id' => 1,
+                'species_island_quota_id' => SpeciesIslandQuota::where('species_id', 1)->where('island_id', 1)->where('year', 2025)->first()->id,
                 'agent_id' => 1,
-                'island_id' => 1,
-                'year' => 2023,
-                'quota_allocated' => 100.00,
                 'quota_used' => 20.00,
                 'remaining_quota' => 80.00,
                 'created_by' => User::inRandomOrder()->first()->id,
@@ -38,11 +36,8 @@ class SpeciesTrackingSeeder extends Seeder
                 'updated_at' => now(),
             ],
             [
-                'species_id' => 2,
+                'species_island_quota_id' => SpeciesIslandQuota::where('species_id', 2)->where('island_id', 2)->where('year', 2025)->first()->id,
                 'agent_id' => 2,
-                'island_id' => 2,
-                'year' => 2023,
-                'quota_allocated' => 150.00,
                 'quota_used' => 50.00,
                 'remaining_quota' => 100.00,
                 'created_by' => User::inRandomOrder()->first()->id,
@@ -51,11 +46,8 @@ class SpeciesTrackingSeeder extends Seeder
                 'updated_at' => now(),
             ],
             [
-                'species_id' => 3,
+                'species_island_quota_id' => SpeciesIslandQuota::where('species_id', 3)->where('island_id', 3)->where('year', 2025)->first()->id,
                 'agent_id' => 1,
-                'island_id' => 3,
-                'year' => 2024,
-                'quota_allocated' => 200.00,
                 'quota_used' => 0.00,
                 'remaining_quota' => 200.00,
                 'created_by' => User::inRandomOrder()->first()->id,

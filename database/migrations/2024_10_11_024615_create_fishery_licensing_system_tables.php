@@ -141,39 +141,53 @@ class CreateFisheryLicensingSystemTables extends Migration
             $table->unique(['agent_id', 'island_id']);
         });
 
+        Schema::create('species_island_quotas', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('species_id')->constrained(); // Assuming you have a species table
+            $table->foreignId('island_id')->constrained(); // Assuming you have an island table
+            $table->decimal('island_quota', 10, 2)->default(0); // For storing the quota for the island
+            $table->decimal('remaining_quota', 10, 2)->default(0); // For remaining quota
+            $table->integer('year'); // Year field
+            $table->foreignId('created_by')->constrained('users'); // Created by user
+            $table->foreignId('updated_by')->nullable()->constrained('users'); // Updated by user
+            $table->softDeletes(); // For soft deletes
+            $table->timestamps(); // For created_at and updated_at
+
+            // Adding unique constraint if needed (e.g., species_id + island_id + year should be unique)
+            $table->unique(['species_id', 'island_id', 'year']);
+        });
+
 
         Schema::create('species_tracking', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('species_id')->constrained();
+            $table->foreignId('species_island_quota_id')->constrained(); // References 'id' in 'species_island_quotas'
             $table->foreignId('agent_id')->constrained();
-            $table->foreignId('island_id')->constrained();
-            $table->integer('year');
-            $table->decimal('quota_allocated', 10, 2)->default(0);
             $table->decimal('quota_used', 10, 2)->default(0);
             $table->decimal('remaining_quota', 10, 2)->default(0);
             $table->timestamps();
             $table->softDeletes();
             $table->foreignId('created_by')->constrained('users');
             $table->foreignId('updated_by')->nullable()->constrained('users');
-            $table->unique(['species_id', 'agent_id', 'island_id', 'year'], 'species_tracking_unique');
         });
+        
      
         
   
         Schema::create('monthly_harvests', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('species_tracking_id')->constrained('species_tracking')->onDelete('cascade');
-            $table->foreignId('agent_id')->constrained('agents')->onDelete('cascade'); 
+            $table->foreignId('license_item_id')->constrained('license_items')->onDelete('cascade');
+            $table->foreignId('applicant_id')->constrained('applicants')->onDelete('cascade'); 
             $table->foreignId('island_id')->constrained('islands')->onDelete('cascade');
-            $table->integer('year');  // Year of the harvest
-            $table->integer('month'); // Month of the harvest
-            $table->decimal('quantity_harvested', 10, 2); // Quantity harvested
+            $table->integer('year');
+            $table->integer('month');
+            $table->decimal('quantity_harvested', 10, 2);
+            $table->decimal('remaining_quota', 10, 2)->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
             $table->softDeletes();
             $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
             $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('cascade');
-            $table->unique(['species_tracking_id', 'month', 'year'], 'monthly_harvest_unique'); // Unique constraint
+            $table->unique(['license_item_id', 'month', 'year'], 'monthly_harvest_unique');
         });
         
         
@@ -297,6 +311,7 @@ class CreateFisheryLicensingSystemTables extends Migration
         Schema::dropIfExists('licenses');
         Schema::dropIfExists('monthly_harvests');
         Schema::dropIfExists('species_tracking');
+        Schema::dropIfExists('species_island_quotas');
         Schema::dropIfExists('agent_island');
         Schema::dropIfExists('agents');
         Schema::dropIfExists('islands');

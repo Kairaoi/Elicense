@@ -84,7 +84,7 @@ Route::group([
 
         // Add the get-species route here
           // Add the get-species route here
-     Route::get('get-species', [\App\Http\Controllers\License\MonthlyHarvestController::class, 'getSpecies'])->name('getSpecies');
+     Route::get('get-species', [\App\Http\Controllers\License\MonthlyHarvestController::class, 'getLicenseItems'])->name('getLicenseItems');
 
     Route::match(['get', 'post'], 'monthly-harvests/datatables', [\App\Http\Controllers\License\MonthlyHarvestController::class, 'getDataTables'])->name('monthly-harvests.datatables');
     Route::resource('monthly-harvests', \App\Http\Controllers\License\MonthlyHarvestController::class);
