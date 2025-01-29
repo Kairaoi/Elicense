@@ -217,7 +217,7 @@ class LicensesController extends Controller
 
 
     
-    public function store(Request $request)
+public function store(Request $request)
 {
     try {
         DB::beginTransaction();
@@ -225,13 +225,13 @@ class LicensesController extends Controller
         // Log incoming request data
         Log::info('Incoming license request data:', $request->all());
 
-        // Validate incoming request data
+        // Modified validation rules to allow empty quotas
         $validated = $request->validate([
             'license_type_id' => 'required|exists:license_types,id',
             'selected_islands' => 'required|array',
             'selected_islands.*' => 'exists:islands,id',
-            'quotas' => 'required|array',
-            'quotas.*.*' => 'numeric|min:0',
+            'quotas' => 'array',
+            'quotas.*.*' => 'nullable|numeric|min:0',
         ]);
 
         // Get applicant ID from session
@@ -245,6 +245,8 @@ class LicensesController extends Controller
         $license->applicant_id = $applicantId;
         $license->license_type_id = $validated['license_type_id'];
         $license->created_by = Auth::id() ?? null;
+        $license->status = 'pending';
+        $license->invoice_date = now(); // Set invoice date to current date
 
         // Generate invoice number
         $licenseType = LicenseType::find($validated['license_type_id']);
@@ -258,53 +260,61 @@ class LicensesController extends Controller
         // Initialize total fee
         $totalLicenseFee = 0;
 
-        // Process quotas for each species and island
-        foreach ($validated['quotas'] as $speciesId => $islandQuotas) {
-            $species = Species::findOrFail($speciesId);
+        // Process quotas for each species and island if quotas exist
+        if (isset($validated['quotas']) && is_array($validated['quotas'])) {
+            foreach ($validated['quotas'] as $speciesId => $islandQuotas) {
+                $species = Species::findOrFail($speciesId);
 
-            foreach ($islandQuotas as $islandId => $requestedQuota) {
-                // Skip if quota is 0 or empty
-                if (empty($requestedQuota) || $requestedQuota <= 0) {
-                    continue;
+                foreach ($islandQuotas as $islandId => $requestedQuota) {
+                    // Skip if quota is empty or 0
+                    if (empty($requestedQuota)) {
+                        continue;
+                    }
+
+                    // Convert to float and check if greater than 0
+                    $requestedQuota = floatval($requestedQuota);
+                    if ($requestedQuota <= 0) {
+                        continue;
+                    }
+
+                    // Verify available quota
+                    $quota = SpeciesIslandQuota::where('species_id', $speciesId)
+                        ->where('island_id', $islandId)
+                        ->whereNotNull('remaining_quota')
+                        ->orderBy('year', 'desc')
+                        ->first();
+
+                    if (!$quota || $quota->remaining_quota < $requestedQuota) {
+                        throw new \Exception("Insufficient quota available for species ID {$speciesId} on island ID {$islandId}");
+                    }
+
+                    // Calculate fee for this item
+                    $speciesFee = $requestedQuota * $species->unit_price;
+                    $totalLicenseFee += $speciesFee;
+
+                    // Create license item only for non-empty quotas
+                    $license->licenseItems()->create([
+                        'species_id' => $speciesId,
+                        'island_id' => $islandId,
+                        'requested_quota' => $requestedQuota,
+                        'unit_price' => $species->unit_price,
+                        'total_price' => $speciesFee,
+                        'created_by' => Auth::id() ?? null,
+                        'creator_type' => Auth::check() ? 'user' : 'guest',
+                    ]);
+
+                    // Update remaining quota
+                    $quota->remaining_quota -= $requestedQuota;
+                    $quota->save();
+
+                    Log::info("Created license item", [
+                        'license_id' => $license->id,
+                        'species_id' => $speciesId,
+                        'island_id' => $islandId,
+                        'requested_quota' => $requestedQuota,
+                        'total_price' => $speciesFee
+                    ]);
                 }
-
-                // Verify available quota
-                $quota = SpeciesIslandQuota::where('species_id', $speciesId)
-                    ->where('island_id', $islandId)
-                    ->whereNotNull('remaining_quota')
-                    ->orderBy('year', 'desc')
-                    ->first();
-
-                if (!$quota || $quota->remaining_quota < $requestedQuota) {
-                    throw new \Exception("Insufficient quota available for species ID {$speciesId} on island ID {$islandId}");
-                }
-
-                // Calculate fee for this item
-                $speciesFee = $requestedQuota * $species->unit_price;
-                $totalLicenseFee += $speciesFee;
-
-                // Create license item
-                $license->licenseItems()->create([
-                    'species_id' => $speciesId,
-                    'island_id' => $islandId,
-                    'requested_quota' => $requestedQuota,
-                    'unit_price' => $species->unit_price,
-                    'total_price' => $speciesFee,
-                    'created_by' => Auth::id() ?? null,
-                    'creator_type' => Auth::check() ? 'user' : 'guest',
-                ]);
-
-                // Update remaining quota
-                $quota->remaining_quota -= $requestedQuota;
-                $quota->save();
-
-                Log::info("Created license item", [
-                    'license_id' => $license->id,
-                    'species_id' => $speciesId,
-                    'island_id' => $islandId,
-                    'requested_quota' => $requestedQuota,
-                    'total_price' => $speciesFee
-                ]);
             }
         }
 
@@ -313,30 +323,15 @@ class LicensesController extends Controller
         $vatAmount = $totalLicenseFee * $vatRate;
         $totalAmountWithVat = $totalLicenseFee + $vatAmount;
 
+        // Update license with fees and other details
         $license->total_fee = $totalLicenseFee;
         $license->vat_amount = $vatAmount;
         $license->total_amount_with_vat = $totalAmountWithVat;
+        $license->updated_by = Auth::id() ?? null;
         $license->save();
-
-        // Log activity
-        activity()
-            ->performedOn($license)
-            ->causedBy(auth()->user())
-            ->withProperties([
-                'license_number' => $license->license_number,
-                'applicant_name' => $license->applicant->first_name . ' ' . $license->applicant->last_name,
-                'license_type' => $license->licenseType->name ?? 'N/A',
-                'ip_address' => request()->ip(),
-                'user_agent' => request()->userAgent(),
-            ])
-            ->log('License created');
-
-        // Clear session
-        session()->forget('temp_applicant_id');
 
         DB::commit();
 
-        // Redirect based on authentication status
         if (Auth::check()) {
             return redirect()->route('license.licenses.index')
                            ->with('success', 'License created successfully.');

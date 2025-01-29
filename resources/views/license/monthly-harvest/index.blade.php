@@ -12,10 +12,12 @@
             <tr>
                 <th>ID</th>
                 <th>Species Name</th>
-                <th>Agent Name</th>
+                <th>Applicant Name</th>
+                <th>Island</th>
+                <th>Year</th>
                 <th>Month</th>
                 <th>Quantity Harvested</th>
-                <th>Notes</th>
+                <th>Remainig Quota</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -39,26 +41,42 @@ $(document).ready(function() {
         columns: [
             { data: 'id' },
             { 
-                data: 'species_tracking.species.name',
-                name: 'species_tracking.species.name'
+                data: 'license_item.species.name',
+                name: 'licenseItem.species.name'
             },
             { 
-                data: 'agent',
+                data: 'applicant',
                 render: function(data) {
-                    return `${data.first_name} ${data.last_name}`; // Combine first and last names
+                    return `${data.first_name} ${data.last_name}`;
                 },
-                name: 'agent.first_name'
+                name: 'applicant.first_name'
             },
+            { 
+                data: 'island.name',
+                name: 'island.name'
+            },
+            { data: 'year' },
             { 
                 data: 'month',
                 render: function(data) {
-                    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-                    return monthNames[data - 1]; // Convert numeric month to name
+                    const monthNames = ["January", "February", "March", "April", "May", "June", 
+                                      "July", "August", "September", "October", "November", "December"];
+                    return monthNames[data - 1];
                 }
             },
-            { data: 'quantity_harvested' },
-            { data: 'notes', defaultContent: 'N/A' },
             { 
+                data: 'quantity_harvested',
+                render: function(data) {
+                    return parseFloat(data).toFixed(2) + ' kg';
+                }
+            },
+            { 
+                data: 'remaining_quota',
+                render: function(data) {
+                    return parseFloat(data).toFixed(2) + ' kg';
+                }
+            },
+            {
                 data: null,
                 orderable: false,
                 render: function(data, type, row) {

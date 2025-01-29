@@ -47,6 +47,13 @@ class MonthlyHarvest extends Model
          );
      }
 
+     // Relationship to Applicant
+    public function applicant()
+    {
+        return $this->belongsTo(Applicant::class, 'applicant_id');
+    }
+
+
      public function island()
      {
          return $this->belongsTo(Island::class);
@@ -68,6 +75,15 @@ class MonthlyHarvest extends Model
         return date('F', mktime(0, 0, 0, $this->month, 1));
     }
 
-     // Define the relationship with the Agent model
+// In MonthlyHarvest model
+public function getHarvestedQuantities()
+{
+    return MonthlyHarvest::where([
+        'applicant_id' => $this->applicant_id,
+        'island_id' => $this->island_id,
+        'year' => $this->year,
+        'month' => $this->month
+    ])->pluck('quantity_harvested', 'license_item_id')->toArray();
+}
     
 }

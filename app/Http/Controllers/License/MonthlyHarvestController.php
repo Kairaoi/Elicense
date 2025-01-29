@@ -127,208 +127,180 @@ class MonthlyHarvestController extends Controller
     }
 }
 
-    
-
-
-
 public function store(Request $request)
 {
+    Log::info('Request data:', $request->all());
+
+    // Validate the incoming request
+    $request->validate([
+        'applicant_id' => 'required|exists:applicants,id',
+        'island_id' => 'required|exists:islands,id',
+        'year' => 'required|integer',
+        'month' => 'required|integer|between:1,12',
+        'harvested_quantity' => 'required|array',
+        'harvested_quantity.*' => 'required|numeric|min:0',
+        'license_item_id' => 'required|array',
+        'license_item_id.*' => 'required|exists:license_items,id',
+    ]);
+
     try {
         DB::beginTransaction();
-
-        // Validate input data
-        $validated = $request->validate([
-            'applicant_id' => 'required|exists:applicants,id',
-            'island_id' => 'required|exists:islands,id',
-            'month' => 'required|integer|between:1,12',
-            'year' => [
-                'required',
-                'integer',
-                'min:' . (date('Y') - 2),
-                'max:' . (date('Y') + 2)
-            ],
-            'license_items' => 'required|array|min:1',
-            'license_items.*' => 'required|exists:license_items,id',
-            'quantities' => 'required|array|min:1',
-            'quantities.*' => 'required|numeric|min:0',
-            'notes' => 'nullable|string|max:1000'
-        ]);
         
-        // Get the applicant and check if they have access to the specified island
-        $applicant = Applicant::findOrFail($validated['applicant_id']);
-        $hasIslandAccess = $applicant->islands()
-            ->where('islands.id', $validated['island_id'])
-            ->exists();
-        
-        if (!$hasIslandAccess) {
-            throw new \Exception('Applicant does not have access to the specified island.');
-        }
+        foreach ($request->harvested_quantity as $itemId => $quantity) {
+            // Ensure license_item_id exists for this entry
+            if (!isset($request->license_item_id[$itemId])) {
+                throw new \Exception("Missing license item ID for item {$itemId}");
+            }
 
-        // Process each license item and quantity
-        foreach ($validated['license_items'] as $index => $licenseItemId) {
-            // Fetch the license item along with related data
-            $licenseItem = LicenseItem::with(['species', 'license'])
-                ->whereHas('license', function ($query) use ($validated) {
-                    $query->where('applicant_id', $validated['applicant_id'])  // Ensure license belongs to the applicant
-                        ->where('status', 'active');
+            $licenseItemId = $request->license_item_id[$itemId];
+            
+            // Get the license item to check requested quota
+            $licenseItem = LicenseItem::findOrFail($licenseItemId);
+            
+            // Calculate total harvested quantity for this license item
+            $totalHarvested = MonthlyHarvest::where('license_item_id', $licenseItemId)
+                ->where(function($query) use ($request) {
+                    $query->where('year', '<', $request->year)
+                        ->orWhere(function($q) use ($request) {
+                            $q->where('year', $request->year)
+                                ->where('month', '<=', $request->month);
+                        });
                 })
-                ->where('id', $licenseItemId)
-                ->where('island_id', $validated['island_id'])
-                ->first();
-
-            // Check if the license item is valid
-            if (!$licenseItem) {
-                throw new \Exception('Invalid license item selected.');
+                ->sum('quantity_harvested');
+            
+            // Add current harvest quantity
+            $totalHarvested += $quantity;
+            
+            // Calculate remaining quota
+            $remainingQuota = $licenseItem->requested_quota - $totalHarvested;
+            
+            // Optional: Check if harvest exceeds quota
+            if ($remainingQuota < 0) {
+                throw new \Exception("Harvest quantity exceeds remaining quota for license item {$licenseItemId}");
             }
-
-            // Check if there's already a harvest record for this license item, month, and year
-            $existingHarvest = MonthlyHarvest::where('license_item_id', $licenseItemId)
-                ->where('month', $validated['month'])
-                ->where('year', $validated['year'])
-                ->exists();
-
-            if ($existingHarvest) {
-                throw new \Exception("A harvest record already exists for {$licenseItem->species->name} in " . 
-                    date('F', mktime(0, 0, 0, $validated['month'], 1)) . " {$validated['year']}");
-            }
-
-            // Calculate remaining quota and requested quantity
-            $remainingQuota = $licenseItem->getRemainingQuota();  // Assuming this method exists to get the remaining quota
-            $requestedQuantity = $validated['quantities'][$index];
-
-            if ($requestedQuantity > $remainingQuota) {
-                throw new \Exception("Requested quantity ({$requestedQuantity} kg) exceeds remaining quota ({$remainingQuota} kg) for {$licenseItem->species->name}");
-            }
-
-            // Create a new harvest record
+            
+            // Create the monthly harvest record
             MonthlyHarvest::create([
+                'applicant_id' => $request->applicant_id,
+                'island_id' => $request->island_id,
+                'year' => $request->year,
+                'month' => $request->month,
+                'quantity_harvested' => $quantity,
                 'license_item_id' => $licenseItemId,
-                'applicant_id' => $validated['applicant_id'],
-                'island_id' => $validated['island_id'],
-                'year' => $validated['year'],
-                'month' => $validated['month'],
-                'quantity_harvested' => $requestedQuantity,
-                'remaining_quota' => $remainingQuota - $requestedQuantity, // Update remaining quota
-                'notes' => $validated['notes'],
-                'created_by' => auth()->id()
+                'remaining_quota' => $remainingQuota,
+                'notes' => $request->notes,
+                'created_by' => auth()->id(),
+                'updated_by' => auth()->id(),
             ]);
-
-            // Update the license item's used quota
-            $licenseItem->updateQuotas();  // Ensure this method is defined and works as expected
-
-            // Update species tracking if needed
-            $speciesIslandQuota = $licenseItem->species->islandQuotas()
-                ->where('island_id', $validated['island_id'])
-                ->where('year', $validated['year'])
-                ->first();
-
-            if ($speciesIslandQuota) {
-                $speciesTracking = $speciesIslandQuota->tracking()
-                    ->where('applicant_id', $validated['applicant_id'])
-                    ->first();
-
-                if ($speciesTracking) {
-                    $speciesTracking->quota_used += $requestedQuantity;
-                    $speciesTracking->remaining_quota -= $requestedQuantity;
-                    $speciesTracking->save();
-                }
-            }
         }
 
-        // Commit the transaction
         DB::commit();
+        Log::info('Monthly harvest recorded successfully');
 
-        // Return success response
         return redirect()
             ->route('license.monthly-harvests.index')
-            ->with('success', 'Monthly harvest records created successfully');
+            ->with('success', 'Monthly harvest recorded successfully');
 
     } catch (\Exception $e) {
-        // Rollback the transaction in case of error
         DB::rollBack();
-
-        // Log error details
-        Log::error('Monthly harvest creation failed', [
-            'error' => $e->getMessage(),
-            'trace' => $e->getTraceAsString(),
-            'request_data' => $request->all()
-        ]);
-
-        // Return error response
+        Log::error('Failed to store monthly harvest: ' . $e->getMessage());
+        
         return redirect()
             ->back()
             ->withInput()
-            ->with('error', $e->getMessage());
+            ->with('error', 'Failed to record monthly harvest: ' . $e->getMessage());
     }
 }
 
     
-    public function edit(SpeciesTracking $speciesTracking, MonthlyHarvest $monthlyHarvest)
-    {
-        $months = array_combine(range(1, 12), array_map(function($m) {
-            return date('F', mktime(0, 0, 0, $m, 1));
-        }, range(1, 12)));
+public function edit($id)
+{
+    $harvest = MonthlyHarvest::findOrFail($id);
+    $applicants = $this->applicantsRepository->pluck();
+    $islands = $this->islandsRepository->pluck();
+    
+    // Generate months for the view (from 1 to 12)
+    $months = array_combine(range(1, 12), array_map(function($m) {
+        return date('F', mktime(0, 0, 0, $m, 1));
+    }, range(1, 12)));
+    
+    // Generate years for the view (2 years before and 2 years after the current year)
+    $currentYear = date('Y');
+    $years = array_combine(
+        range($currentYear - 2, $currentYear + 2),
+        range($currentYear - 2, $currentYear + 2)
+    );
+    
+    return view('license.monthly-harvest.edit', compact(
+        'harvest',
+        'applicants', 
+        'months', 
+        'years',
+        'islands'
+    ));
+}
 
-        return view('license.monthly-harvest.edit', compact('speciesTracking', 'monthlyHarvest', 'months'));
-    }
+public function update(Request $request, $id)
+{
+    Log::info('Update request data:', $request->all());
 
-    public function update(Request $request, SpeciesTracking $speciesTracking, MonthlyHarvest $monthlyHarvest)
-    {
-        try {
-            DB::beginTransaction();
+    // Validate the incoming request
+    $request->validate([
+        'applicant_id' => 'required|exists:applicants,id',
+        'island_id' => 'required|exists:islands,id',
+        'year' => 'required|integer',
+        'month' => 'required|integer|between:1,12',
+        'harvested_quantity' => 'required|array',
+        'harvested_quantity.*' => 'required|numeric|min:0',
+        'license_item_id' => 'required|array',
+        'license_item_id.*' => 'required|exists:license_items,id',
+    ]);
 
-            // Validate request
-            $data = $request->validate([
-                'month' => [
-                    'required',
-                    'integer',
-                    'between:1,12',
-                    function ($attribute, $value, $fail) use ($speciesTracking, $monthlyHarvest) {
-                        // Check if month exists but exclude current record
-                        if (MonthlyHarvest::where('species_tracking_id', $speciesTracking->id)
-                            ->where('month', $value)
-                            ->where('id', '!=', $monthlyHarvest->id)
-                            ->exists()) {
-                            $fail('A harvest record already exists for this month.');
-                        }
-                    },
-                ],
-                'quantity_harvested' => 'required|numeric|min:0',
-                'notes' => 'nullable|string|max:1000'
-            ]);
+    try {
+        DB::beginTransaction();
 
-            // Calculate quota difference
-            $quotaDiff = $data['quantity_harvested'] - $monthlyHarvest->quantity_harvested;
-            
-            // Check if new quantity would exceed remaining quota
-            if ($quotaDiff > $speciesTracking->remaining_quota) {
-                throw new \Exception('New harvest quantity would exceed remaining quota');
+        // Delete existing harvest records for this month/year/applicant combination
+        MonthlyHarvest::where('id', $id)->delete();
+
+        foreach ($request->harvested_quantity as $itemId => $quantity) {
+            // Ensure license_item_id exists for this entry
+            if (!isset($request->license_item_id[$itemId])) {
+                throw new \Exception("Missing license item ID for item {$itemId}");
             }
 
-            // Update harvest record
-            $data['updated_by'] = auth()->id();
-            $this->monthlyHarvestRepository->update($monthlyHarvest->id, $data);
-
-            // Update tracking quotas
-            $speciesTracking->updateQuotas();
-
-            DB::commit();
-
-            return redirect()->route('license.trackings.show', $speciesTracking)
-                ->with('success', 'Monthly harvest updated successfully');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Monthly harvest update failed', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+            $licenseItemId = $request->license_item_id[$itemId];
+            
+            // Create the monthly harvest record
+            MonthlyHarvest::create([
+                'applicant_id' => $request->applicant_id,
+                'island_id' => $request->island_id,
+                'year' => $request->year,
+                'month' => $request->month,
+                'quantity_harvested' => $quantity,
+                'license_item_id' => $licenseItemId,
+                'notes' => $request->notes,
+                'created_by' => auth()->id(),
+                'updated_by' => auth()->id(),
             ]);
-
-            return redirect()->back()
-                ->withInput()
-                ->with('error', $e->getMessage());
         }
+
+        DB::commit();
+        Log::info('Monthly harvest updated successfully');
+
+        return redirect()
+            ->route('license.monthly-harvests.index')
+            ->with('success', 'Monthly harvest updated successfully');
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        Log::error('Failed to update monthly harvest: ' . $e->getMessage());
+        
+        return redirect()
+            ->back()
+            ->withInput()
+            ->with('error', 'Failed to update monthly harvest: ' . $e->getMessage());
     }
+}
 
     public function destroy(SpeciesTracking $speciesTracking, MonthlyHarvest $monthlyHarvest)
     {
@@ -360,10 +332,12 @@ public function store(Request $request)
     {
         $monthlyHarvest = $this->monthlyHarvestRepository->getById($id);
 
+        // dd($monthlyHarvest);
+
         if (!$monthlyHarvest) {
             return response()->json(['message' => 'monthlyHarvest not found'], Response::HTTP_NOT_FOUND);
         }
 
-        return view('license.monthly-harvest.index', compact('monthlyHarvest'));
+        return view('license.monthly-harvest.show', compact('monthlyHarvest'));
     }
 }

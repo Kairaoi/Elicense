@@ -221,7 +221,7 @@ footer * {
             <a class="dropdown-item" href="{{ route('harvester.boards.index') }}">Harvester</a>
             <a class="dropdown-item" href="{{ route('species-island-quotas.quota.index') }}">Island Quota</a>
             <a class="dropdown-item" href="{{ route('pfps.boards.index') }}">Please Fishing Permt</a>
-            <a class="dropdown-item" href="{{ route('license.board.index') }}">Managing Agent Activities</a>
+            <a class="dropdown-item" href="{{ route('license.board.index') }}">Managing Companies Monthly Harvest</a>
              
             <a class="dropdown-item" href="{{ route('reports.index') }}">Report</a>
         @endif

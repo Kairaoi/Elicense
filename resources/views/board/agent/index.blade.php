@@ -100,16 +100,14 @@
 <div class="container my-5">
     <!-- Header -->
     <div class="text-center mb-5">
-        <h1 class="display-4">Agents for a company</h1>
-        <p class="lead">Manage and track your company agents and their activities.</p>
+        <h1 class="display-4">Company Monthly Harvest</h1>
+        <p class="lead">Track and manage monthly harvest records for your company.</p>
     </div>
 
     <!-- Navigation Tabs -->
     <ul class="nav nav-pills mb-4 justify-content-center">
         @foreach ([ 
-            ['id' => 'agents', 'title' => 'Agents', 'icon' => 'bi bi-person'],
-            ['id' => 'species_tracking', 'title' => 'Species Trackings', 'icon' => 'bi bi-person'],
-            ['id' => 'monthly_harvest', 'title' => 'Monthly Harvest', 'icon' => 'bi bi-person'],
+                       ['id' => 'monthly_harvest', 'title' => 'Monthly Harvest', 'icon' => 'bi bi-bar-chart'],
         ] as $tab)
             <li class="nav-item">
                 <a class="nav-link {{ $loop->first ? 'active' : '' }}" 
@@ -127,9 +125,7 @@
     <!-- Tab Contents -->
     <div class="tab-content">
         @foreach ([ 
-            ['id' => 'agents', 'title' => 'Agents', 'description' => 'View and manage company agents and their assignments.', 'route' => 'license.agents.index'],
-            ['id' => 'species_tracking', 'title' => 'Species Trackings', 'description' => 'View and manage company agents and their assignments.', 'route' => 'license.trackings.index'],
-            ['id' => 'monthly_harvest', 'title' => 'Monthly Harvest', 'description' => 'View and manage company agents and their assignments.', 'route' => 'license.monthly-harvests.index'],
+           ['id' => 'monthly_harvest', 'title' => 'Company Monthly Harvest', 'description' => 'View, record, and manage the company’s monthly harvest data.', 'route' => 'license.monthly-harvests.index'],
         ] as $tab)
             <div class="tab-pane fade @if($loop->first) show active @endif" id="{{ $tab['id'] }}" role="tabpanel">
                 <div class="card mb-4">

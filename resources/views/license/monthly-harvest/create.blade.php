@@ -209,45 +209,47 @@ $(document).ready(function() {
             const url = "{{ route('license.getLicenseItems') }}";
 
             $.get(url, { applicant_id: applicantId, island_id: islandId })
-                .done(function(response) {
-                    console.log('API Response:', response); // Debugging log
+    .done(function(response) {
+        console.log('API Response:', response); // Debugging log
 
-                    if (response.success && response.items.length > 0) {
-                        let licenseItemsHtml = '';  // For generating the input fields
+        if (response.success && response.items.length > 0) {
+            let licenseItemsHtml = '';  // For generating the input fields
 
-                        response.items.forEach(function(item) {
-                            // Generate the HTML for each species with requested and available quota, and quantity input
-                            licenseItemsHtml += `
-                                <div class="harvest-item">
-                                    <div class="species-name">${item.species_name}</div>
-                                    <div class="quota-value">
-                                        Requested: ${item.requested_quota} kg | Available: ${item.remaining_quota} kg
-                                    </div>
-                                    <div class="quantity-input">
-                                        <input type="number" 
-                                               name="harvested_quantity[${item.id}]" 
-                                               id="harvested_quantity_${item.id}" 
-                                               class="form-control @error('harvested_quantity.${item.id}') is-invalid @enderror"
-                                               step="0.01"
-                                               min="0"
-                                               required>
-                                        @error('harvested_quantity.${item.id}')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                </div>
-                            `;
-                        });
+            response.items.forEach(function(item) {
+                // Generate the HTML for each species with requested and available quota, and quantity input
+                licenseItemsHtml += `
+                    <div class="harvest-item">
+                        <div class="species-name">${item.species_name}</div>
+                        <div class="quota-value">
+                            Requested: ${item.requested_quota} kg | Available: ${item.remaining_quota} kg
+                        </div>
+                        <div class="quantity-input">
+                            <input type="number"
+                                name="harvested_quantity[${item.id}]"
+                                id="harvested_quantity_${item.id}"
+                                class="form-control @error('harvested_quantity.${item.id}') is-invalid @enderror"
+                                step="0.01"
+                                min="0"
+                                required>
+                            @error('harvested_quantity.${item.id}')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <input type="hidden" name="license_item_id[${item.id}]" value="${item.id}" />
+                    </div>
+                `;
+            });
 
-                        $('#license-items-container').html(licenseItemsHtml); // Show all input fields for quantity harvested side by side
-                    } else {
-                        $('#license-items-container').html('No quota information available for this selection.');
-                    }
-                })
-                .fail(function(jqXHR, textStatus, errorThrown) {
-                    console.error('AJAX Error:', jqXHR.responseText);
-                    $('#license-items-container').html('An error occurred while loading data.');
-                });
+            $('#license-items-container').html(licenseItemsHtml); // Show all input fields for quantity harvested side by side
+        } else {
+            $('#license-items-container').html('No quota information available for this selection.');
+        }
+    })
+    .fail(function(jqXHR, textStatus, errorThrown) {
+        console.error('AJAX Error:', jqXHR.responseText);
+        $('#license-items-container').html('An error occurred while loading data.');
+    });
+
         } else {
             $('#license-items-container').html('Please select an applicant and island.');
         }
