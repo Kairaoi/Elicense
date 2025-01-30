@@ -59,6 +59,18 @@ Route::group([
 });
 
 Route::group([
+    'as' => 'applicantdetails.',
+    'prefix' => 'applicantdetails',
+    'middleware' => ['auth', 'role:lic.user|lic.admin|lic.viewer|lic.view.all|applicant'],
+], function () {
+    
+    
+    Route::match(['get', 'post'], 'applicantdetails/datatables', [\App\Http\Controllers\License\ApplicantsDetailsController::class, 'getDataTables'])->name('applicants.datatables');
+    Route::resource('applicantdetails', \App\Http\Controllers\License\ApplicantsDetailsController::class, ['only' => ['index']]);
+    
+});
+
+Route::group([
     'as' => 'license.',
     'prefix' => 'license',
     'middleware' => ['auth', 'role:lic.user|lic.admin|lic.viewer|lic.view.all|applicant'],

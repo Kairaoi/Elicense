@@ -251,7 +251,7 @@ footer * {
         @endif
 
         @if(Auth::user()->hasRole('applicant'))
-            <a class="dropdown-item" href="{{ route('license.licenses.index') }}">My Licenses</a>
+            <a class="dropdown-item" href="{{ route('applicantdetails.applicantdetails.index') }}">My Licenses</a>
         @endif
 
     </div>
