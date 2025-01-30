@@ -207,7 +207,7 @@ $(document).ready(function() {
         const islandId = $('#island_id').val();
 
         if (applicantId && islandId) {
-            const url = "{{ route('license.getLicenseItems') }}";
+            const url = "{{ route('license.licenses.getLicenseItems') }}";
 
             $.get(url, { applicant_id: applicantId, island_id: islandId })
                 .done(function(response) {

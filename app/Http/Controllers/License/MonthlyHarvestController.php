@@ -146,6 +146,13 @@ public function store(Request $request)
     try {
         DB::beginTransaction();
         
+        // First, delete any existing records for this applicant/island/year/month combination
+        MonthlyHarvest::where('applicant_id', $request->applicant_id)
+            ->where('island_id', $request->island_id)
+            ->where('year', $request->year)
+            ->where('month', $request->month)
+            ->delete();
+        
         foreach ($request->harvested_quantity as $itemId => $quantity) {
             // Ensure license_item_id exists for this entry
             if (!isset($request->license_item_id[$itemId])) {

@@ -187,7 +187,7 @@ class CreateFisheryLicensingSystemTables extends Migration
             $table->softDeletes();
             $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
             $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('cascade');
-            $table->unique(['license_item_id', 'month', 'year'], 'monthly_harvest_unique');
+            // $table->unique(['license_item_id', 'month', 'year'], 'monthly_harvest_unique');
         });
         
         

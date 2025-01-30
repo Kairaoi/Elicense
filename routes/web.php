@@ -84,7 +84,7 @@ Route::group([
 
         // Add the get-species route here
           // Add the get-species route here
-     Route::get('get-species', [\App\Http\Controllers\License\MonthlyHarvestController::class, 'getLicenseItems'])->name('getLicenseItems');
+     Route::get('get-species', [\App\Http\Controllers\License\MonthlyHarvestController::class, 'getLicenseItems'])->name('licenses.getLicenseItems');
 
     Route::match(['get', 'post'], 'monthly-harvests/datatables', [\App\Http\Controllers\License\MonthlyHarvestController::class, 'getDataTables'])->name('monthly-harvests.datatables');
     Route::resource('monthly-harvests', \App\Http\Controllers\License\MonthlyHarvestController::class);
@@ -100,6 +100,7 @@ Route::group([
     Route::post('licenses/{license}/issue', [\App\Http\Controllers\License\LicensesController::class, 'issueLicense'])->name('licenses.issue');
     Route::get('/license/licenses/{license}/download', [\App\Http\Controllers\License\LicensesController::class, 'downloadLicense'])->name('licenses.download');
     Route::patch('/licenses/{license}/mark-as-paid', [\App\Http\Controllers\License\LicensesController::class, 'markAsPaid'])->name('licenses.mark-as-paid');
+    Route::get('/licenses/by-applicant', [\App\Http\Controllers\License\LicensesController::class, 'getLicensesByApplicant'])->name('licenses.getLicensesByApplicant');
 
     // New route for revoking a license
     Route::put('/licenses/{license}/revoke', [App\Http\Controllers\License\LicensesController::class, 'revokeLicense'])->name('licenses.revoke');
