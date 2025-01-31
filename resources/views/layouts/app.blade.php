@@ -227,26 +227,21 @@ footer * {
         @endif
 
         {{-- License User --}}
-        @if(Auth::user()->hasRole('lic.user'))
+        @if(Auth::user()->hasRole('lic.license'))
             <a class="dropdown-item" href="{{ route('applicant.boards.index') }}">Applications</a>
             <a class="dropdown-item" href="{{ route('license.boards.index') }}">License</a>
-            <a class="dropdown-item" href="{{ route('export.boards.index') }}">Consignment</a>
+            
         @endif
 
         {{-- View All Access --}}
-        @if(Auth::user()->hasRole('lic.view.all'))
-            <a class="dropdown-item" href="{{ route('applicant.boards.index') }}">Applications</a>
-            <a class="dropdown-item" href="{{ route('license.boards.index') }}">License</a>
-            <a class="dropdown-item" href="{{ route('export.boards.index') }}">Consignment</a>
+        @if(Auth::user()->hasRole('lic.harvester'))
             
-            <a class="dropdown-item" href="{{ route('harvester.boards.index') }}">Harvester</a>
+         <a class="dropdown-item" href="{{ route('harvester.boards.index') }}">Harvester</a>
             
         @endif 
 
         {{-- Viewer Access --}}
-        @if(Auth::user()->hasRole('lic.viewer'))
-            <a class="dropdown-item" href="{{ route('applicant.boards.index') }}">Applications</a>
-            <a class="dropdown-item" href="{{ route('license.boards.index') }}">License</a>
+        @if(Auth::user()->hasRole('lic.export'))
             <a class="dropdown-item" href="{{ route('export.boards.index') }}">Consignment</a>
         @endif
 

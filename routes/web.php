@@ -44,7 +44,7 @@ Route::group([
 Route::group([
     'as' => 'applicant.',
     'prefix' => 'applicant',
-    'middleware' => ['auth', 'role:lic.user|lic.admin|lic.viewer|lic.view.all|applicant'],
+    'middleware' => ['auth', 'role:lic.admin|lic.license'],
 ], function () {
     
     Route::post('licenses/{id}/review', [\App\Http\Controllers\License\ApplicantsController::class, 'review'])->name('applicants.review');
@@ -61,7 +61,7 @@ Route::group([
 Route::group([
     'as' => 'applicantdetails.',
     'prefix' => 'applicantdetails',
-    'middleware' => ['auth', 'role:lic.user|lic.admin|lic.viewer|lic.view.all|applicant'],
+    'middleware' => ['auth', 'role:applicant'],
 ], function () {
     
     
@@ -73,7 +73,7 @@ Route::group([
 Route::group([
     'as' => 'license.',
     'prefix' => 'license',
-    'middleware' => ['auth', 'role:lic.user|lic.admin|lic.viewer|lic.view.all|applicant'],
+    'middleware' => ['auth', 'role:lic.admin|lic.license'],
 ], function () {
 
     Route::get('/licenses/create2', [App\Http\Controllers\License\LicensesController::class, 'create2'])->name('licenses.create2');
@@ -135,7 +135,7 @@ Route::group([
 Route::group([
     'as' => 'export.',
     'prefix' => 'export',
-    'middleware' => ['auth', 'role:lic.user|lic.admin|lic.viewer|lic.view.all'],
+    'middleware' => ['auth', 'role:lic.export|lic.admin'],
 ], function () {
     Route::get('/declarations/get-species-for-applicant', [\App\Http\Controllers\License\ExportDeclarationsController::class, 'getSpeciesForApplicant'])->name('get-species-for-applicant');
     Route::get('/declarations/{id}/invoice', [\App\Http\Controllers\License\ExportDeclarationsController::class, 'showInvoice'])->name('declarations.invoice');
@@ -147,7 +147,7 @@ Route::group([
 Route::group([
     'as' => 'harvester.',
     'prefix' => 'harvester',
-    'middleware' => ['auth', 'role:lic.user|lic.admin|lic.viewer|lic.view.all'],
+    'middleware' => ['auth', 'role:lic.harvester|lic.admin'],
 ], function () {
     // Datatables routes
     Route::match(['get', 'post'], 'licenses/datatables', [
@@ -250,7 +250,7 @@ Route::group([
 Route::group([
     'as' => 'species-island-quotas.',
     'prefix' => 'species-island-quotas',
-    'middleware' => ['auth', 'role:lic.user|lic.admin|lic.viewer|lic.view.all'],
+    'middleware' => ['auth', 'role:lic.admin'],
 ], function () {
     
     Route::match(['get', 'post'], 'quota/datatables', [\App\Http\Controllers\License\SpeciesIslandQuotaController::class, 'getDataTables'])->name('quota.datatables');
@@ -261,7 +261,7 @@ Route::group([
 Route::group([
     'as' => 'pfps.',
     'prefix' => 'pfps',
-    'middleware' => ['auth', 'role:lic.user|lic.admin|lic.viewer|lic.view.all'],
+    'middleware' => ['auth', 'role:lic.admin'],
 ], function () {
 
     Route::match(['get', 'post'], 'countries/datatables', [\App\Http\Controllers\Pfps\CountryController::class, 'getDataTables'])->name('countries.datatables');
