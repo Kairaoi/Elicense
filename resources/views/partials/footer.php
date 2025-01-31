@@ -20,7 +20,7 @@
                 </div>
             </div>
             <div class="col-lg-4 col-md-12">
-                <img src="/path-to-your-logo.png" alt="Ministry Logo" class="footer-logo mb-3">
+            <img src="http://localhost/fisherylicense/public/images/logos.png" alt="Official Seal" class="logo">
                 <p class="footer-description">Serving the people of Kiribati through sustainable fisheries management and marine resource development.</p>
             </div>
         </div>
@@ -191,5 +191,30 @@
     .footer-contact p {
         justify-content: center;
     }
+
+   /* Container for logo and text */
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Space between logo and text */
+}
+
+/* Adjusting the size of the logo */
+.logo {
+    max-width: 40px; /* Very small logo size */
+    height: auto; /* Maintain aspect ratio */
+}
+
+/* Adjusting the footer description */
+.footer-description {
+    font-size: 0.9rem; /* Font size adjustment */
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.6;
+    margin: 0;
+}
+
+
+}
+
 }
 </style>

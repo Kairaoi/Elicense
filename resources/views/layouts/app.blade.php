@@ -169,6 +169,13 @@ footer * {
 .footer-content {
     background-color: rgba(33, 37, 41, 1); /* Te color ae ti te arona ma bg-dark */
 }
+
+/* Push the main content down using margin-top and padding-top */
+main.py-4 {
+    padding-top: 20px; /* Adds internal space */
+    margin-top: 20px;   /* Adds external space to push content down */
+}
+
     </style>
 
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])

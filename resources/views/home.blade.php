@@ -251,9 +251,8 @@
 <div class="container">
     <div class="header">
         <div class="header-content">
-            <img src="http://localhost/fisherylicense/public/images/logos.png" alt="Official Seal" class="logo">
-            <h1>Online Licensing System</h1>
-            <p class="subtitle">Coastal Fisheries Division | Ministry of Fisheries and Ocean Resources</p>
+                   <h1>E-Licensing System</h1>
+            <p class="subtitle">Ministry of Fisheries and Ocean Resources</p>
         </div>
     </div>
 

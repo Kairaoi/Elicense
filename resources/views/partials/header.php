@@ -1,25 +1,13 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+
 <head>
-    <!-- Head content -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <title>{{ config('app.name', 'Coastal Fisheries Licensing') }}</title>
-
-    <!-- Fonts -->
-    <link rel="dns-prefetch" href="//fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=Nunito" rel="stylesheet">
-
-    <!-- Bootstrap CSS -->
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
-
+    
     <style>
         body {
             min-height: 100vh;
             margin: 0;
-            font-family: 'Nunito', sans-serif;
             background: linear-gradient(to bottom, #e0f7fa, #80deea);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         header {
@@ -39,42 +27,93 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
 
-        header h1 {
-            font-size: 36px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-        }
-
-        header p {
-            font-size: 20px;
-            margin-top: 0;
-            margin-bottom: 20px;
-        }
-
         .header-decorative {
             background: linear-gradient(90deg, #00796b, #004d40);
             height: 10px;
             margin-top: 20px;
             border-radius: 5px;
         }
+
+        /* Footer Styles Applied to Header */
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(to right, #ffd700, #ff9900);
+        }
+
+        .footer-heading {
+            color: #ffffff;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            position: relative;
+            padding-bottom: 0.75rem;
+        }
+
+        .footer-heading::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 50px;
+            height: 2px;
+            background: #ffd700;
+        }
+
+        .social-icons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .social-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            color: #ffffff;
+            transition: all 0.3s ease;
+        }
+
+        .social-icon:hover {
+            background: #ffd700;
+            color: #1a3c6d;
+            transform: translateY(-3px);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            header {
+                text-align: center;
+            }
+
+            .footer-heading::after {
+                left: 50%;
+                transform: translateX(-50%);
+            }
+
+            .social-icons {
+                justify-content: center;
+            }
+        }
     </style>
 </head>
 <body>
     <header>
         <div class="container">
-            <img src="{{ asset('images/oag_logo.png') }}" alt="Office Logo">
-            <h1>Coastal Fisheries Online Licensing</h1>
-            <p class="header-description">Promoting Sustainable Fishing Practices</p>
-            <div class="header-decorative"></div>
+            <img src="http://localhost/fisherylicense/public/images/logos.png" alt="Official Seal" class="logo">
+            
         </div>
     </header>
 
-    <div id="app">
-        <!-- Main content goes here -->
-    </div>
+    
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
