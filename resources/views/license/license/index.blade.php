@@ -192,26 +192,41 @@ $(document).ready(function() {
     }
 
     window.revokeLicense = function(licenseId) {
+    // Show prompt for reason
     const reason = prompt('Please enter the reason for revoking this license:');
-    if (!reason) {
-        return; // User cancelled or didn't enter a reason
+    
+    // If user cancels or enters empty reason, exit
+    if (!reason || reason.trim() === '') {
+        return;
     }
 
+    // Confirm the action
     if (confirmAction('Are you sure you want to revoke this license? This action cannot be undone.')) {
+        // Make sure we have the CSRF token
+        const token = $('meta[name="csrf-token"]').attr('content');
+        if (!token) {
+            alert('CSRF token not found. Please refresh the page and try again.');
+            return;
+        }
+
+        // Send the AJAX request
         $.ajax({
             url: route('license.licenses.revoke', licenseId),
             type: 'PUT',
             headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': token,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
             },
-            data: {
-                revocation_reason: reason
-            },
+            data: JSON.stringify({
+                revocation_reason: reason.trim()
+            }),
+            dataType: 'json',
             success: function(response) {
                 alert('License has been revoked successfully');
                 table.ajax.reload();
                 
-                // If there's a download URL in the response, offer to download the revoked license
+                // If there's a download URL in the response, offer to download
                 if (response.download_url) {
                     if (confirm('Would you like to download the revoked license document?')) {
                         window.location.href = response.download_url;
@@ -219,7 +234,17 @@ $(document).ready(function() {
                 }
             },
             error: function(xhr) {
-                alert('Error revoking license: ' + xhr.responseJSON.message);
+                // Handle validation errors specifically
+                if (xhr.status === 422) {
+                    const errors = xhr.responseJSON.errors;
+                    let errorMessage = 'Validation failed:\n';
+                    Object.keys(errors).forEach(key => {
+                        errorMessage += `${errors[key]}\n`;
+                    });
+                    alert(errorMessage);
+                } else {
+                    alert('Error revoking license: ' + (xhr.responseJSON?.message || 'Unknown error occurred'));
+                }
             }
         });
     }

@@ -55,23 +55,23 @@ class License extends Model
         'applicant_id',
         'license_type_id',
         'total_fee',
-        'license_number',
-        'issue_date',
-        'expiry_date',
+        'status',
         'revocation_reason',
-        'revocation_date',  // Add this
-        'revoked_by',      // Add this
-        'issued_by',
         'invoice_number',
         'invoice_date',
         'payment_date',
         'vat_amount',
         'total_amount_with_vat',
+        'license_number',
         'created_by',
         'updated_by',
-        'status',
+        'issued_by',
+        'issue_date',
+        'expired_by',
+        'expiry_date',
+        'revoked_by',
+        'revocation_date'
     ];
-    
 
     // Define relationships
 

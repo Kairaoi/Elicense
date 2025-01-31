@@ -75,6 +75,8 @@ class CreateFisheryLicensingSystemTables extends Migration
             $table->decimal('vat_amount', 10, 2)->default(0);
             $table->decimal('total_amount_with_vat', 10, 2)->default(0);
             $table->string('license_number')->unique()->nullable();
+            $table->foreignId('revoked_by')->nullable()->constrained('users');
+            $table->date('revocation_date')->nullable();
             $table->timestamps();
             $table->softDeletes();
             $table->foreignId('created_by')->nullable()->constrained('users');

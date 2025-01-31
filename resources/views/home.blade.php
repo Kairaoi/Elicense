@@ -257,6 +257,9 @@
         </div>
     </div>
 
+    @if(Auth::check() && Auth::user()->hasRole('applicant'))
+    {{-- Applicant users cannot see this --}}
+@else
     <div class="section">
         <i class="fas fa-file-signature icon"></i>
         <h2>License Application Process</h2>
@@ -267,6 +270,7 @@
             </a>
         </div>
     </div>
+@endif
 
     <div class="section">
         <i class="fas fa-headset icon"></i>
