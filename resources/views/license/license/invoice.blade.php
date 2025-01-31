@@ -22,12 +22,13 @@
         }
 
         .invoice-container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 40px auto;
             background: var(--white);
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
             border-radius: 12px;
             overflow: hidden;
+            padding: 20px;
         }
 
         .invoice-header {
@@ -55,7 +56,7 @@
         }
 
         .invoice-body {
-            padding: 30px;
+            padding: 20px;
         }
 
         .invoice-meta {
@@ -106,15 +107,9 @@
             background-color: #f8f9fa;
         }
 
-        .subtotal-row {
+        .subtotal-row, .vat-row, .total-row {
             background-color: #f8f9fa;
             font-weight: 600;
-        }
-
-        .vat-row {
-            background-color: #f8f9fa;
-            font-weight: 600;
-            color: #666;
         }
 
         .total-row {
@@ -177,7 +172,7 @@
     <div class="invoice-container">
         <div class="invoice-header">
             <!-- Logo -->
-            <img src="http://localhost/fisherylicense/public/images/logos.png" alt="Official Seal" class="logo">
+            <img src="http://localhost/fisherylicense/public/images/logos.png" alt="Official Seal" class="logo" style="max-width: 150px;">
             <h1 class="invoice-title">Invoice</h1>
             <div class="invoice-details">
                 <p><strong>#{{ $license->invoice_number }}</strong></p>
@@ -205,49 +200,49 @@
             </div>
 
             <table>
-    <thead>
-        <tr>
-            <th>Island</th>
-            <th>Species</th>
-            <th>Requested Quota</th>
-            <th>Unit Price</th>
-            <th>Total</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach($license->licenseItems->groupBy('island_id') as $islandId => $items)
-            @php
-                $island = App\Models\Reference\Island::find($islandId);
-            @endphp
-            <tr>
-                <td colspan="5" style="background-color: #f0f0f0; font-weight: bold;">
-                    {{ $island->name }}
-                </td>
-            </tr>
-            @foreach($items as $item)
-            <tr>
-                <td></td>
-                <td>{{ $item->species->name }}</td>
-                <td>{{ $item->requested_quota }}</td>
-                <td>${{ number_format($item->unit_price, 2) }}</td>
-                <td>${{ number_format($item->total_price, 2) }}</td>
-            </tr>
-            @endforeach
-        @endforeach
-        <tr class="subtotal-row">
-            <td colspan="4">Subtotal</td>
-            <td>${{ number_format($license->total_fee, 2) }}</td>
-        </tr>
-        <tr class="vat-row">
-            <td colspan="4">VAT (12.5%)</td>
-            <td>${{ number_format($license->vat_amount, 2) }}</td>
-        </tr>
-        <tr class="total-row">
-            <td colspan="4">Total Amount (Including VAT)</td>
-            <td>${{ number_format($license->total_amount_with_vat, 2) }}</td>
-        </tr>
-    </tbody>
-</table>
+                <thead>
+                    <tr>
+                        <th>Island</th>
+                        <th>Species</th>
+                        <th>Requested Quota</th>
+                        <th>Unit Price</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($license->licenseItems->groupBy('island_id') as $islandId => $items)
+                        @php
+                            $island = App\Models\Reference\Island::find($islandId);
+                        @endphp
+                        <tr>
+                            <td colspan="5" style="background-color: #f0f0f0; font-weight: bold;">
+                                {{ $island->name }}
+                            </td>
+                        </tr>
+                        @foreach($items as $item)
+                        <tr>
+                            <td></td>
+                            <td>{{ $item->species->name }}</td>
+                            <td>{{ $item->requested_quota }}</td>
+                            <td>${{ number_format($item->unit_price, 2) }}</td>
+                            <td>${{ number_format($item->total_price, 2) }}</td>
+                        </tr>
+                        @endforeach
+                    @endforeach
+                    <tr class="subtotal-row">
+                        <td colspan="4">Subtotal</td>
+                        <td>${{ number_format($license->total_fee, 2) }}</td>
+                    </tr>
+                    <tr class="vat-row">
+                        <td colspan="4">VAT (12.5%)</td>
+                        <td>${{ number_format($license->vat_amount, 2) }}</td>
+                    </tr>
+                    <tr class="total-row">
+                        <td colspan="4">Total Amount (Including VAT)</td>
+                        <td>${{ number_format($license->total_amount_with_vat, 2) }}</td>
+                    </tr>
+                </tbody>
+            </table>
 
             <div class="amount-in-words">
                 <p><strong>Amount in words:</strong> 
