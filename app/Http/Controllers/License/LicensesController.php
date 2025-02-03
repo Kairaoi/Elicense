@@ -27,6 +27,8 @@ use Intervention\Image\Facades\Image;
 use App\Repositories\License\SpeciesIslandQuotaRepository; 
 use Illuminate\Support\Facades\Storage;
 
+// use Barryvdh\DomPDF\Facade\Pdf;
+
 
 
 
@@ -912,108 +914,65 @@ public function activityLog($id)
      */
     public function revokeLicense(Request $request, $id)
 {
-    try {
-        // Find the license
-        $license = License::findOrFail($id);
-        
-        // Log the incoming request
-        \Log::info('Revoke License Request:', [
-            'license_id' => $id,
-            'request_data' => $request->all()
-        ]);
-    
-        // Validate input
-        $validator = Validator::make($request->all(), [
-            'revocation_reason' => 'required|string|min:3|max:1000'
-        ]);
-    
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validation failed',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-    
-        // Check if license can be revoked
-        if ($license->status !== 'license_issued') {
-            return response()->json([
-                'message' => 'This license cannot be revoked from its current status.',
-            ], 422);
-        }
-    
-        DB::beginTransaction();
-    
-        try {
-            // Update license status and details
-            $license->update([
-                'status' => 'license_revoked',
-                'revocation_reason' => $request->revocation_reason,
-                'revocation_date' => now(),
-                'revoked_by' => auth()->id(),
-                'updated_by' => auth()->id() // Also update the updated_by field
-            ]);
-    
-            // Log the successful revocation
-            activity()
-                ->performedOn($license)
-                ->causedBy(auth()->user())
-                ->withProperties([
-                    'license_number' => $license->license_number,
-                    'revocation_reason' => $request->revocation_reason,
-                    'revoked_by' => auth()->user()->name
-                ])
-                ->log('License revoked');
-    
-            DB::commit();
-    
-            return response()->json([
-                'success' => true,
-                'message' => 'License has been revoked successfully.',
-                'download_url' => route('license.licenses.download-revoked', $license->id)
-            ]);
-    
-        } catch (\Exception $e) {
-            DB::rollBack();
-            throw $e;
-        }
-    
-    } catch (\Exception $e) {
-        \Log::error('License revocation error:', [
-            'error' => $e->getMessage(),
-            'license_id' => $id,
-            'stack_trace' => $e->getTraceAsString()
-        ]);
-    
+    \Log::info('Revoke License Request Data:', $request->all()); // Log request
+
+    $validator = Validator::make($request->all(), [
+        'revocation_reason' => 'required|string|min:3|max:1000'
+    ], [
+        'revocation_reason.required' => 'Please provide a reason for revoking this license.',
+    ]);
+
+    if ($validator->fails()) {
+        \Log::warning('Revocation validation failed:', $validator->errors()->toArray()); // Log validation errors
         return response()->json([
             'success' => false,
-            'message' => 'An error occurred while revoking the license: ' . $e->getMessage()
-        ], 500);
+            'message' => 'Validation failed',
+            'errors' => $validator->errors()
+        ], 422);
     }
+
+    $license = License::findOrFail($id);
+
+    if ($license->status !== 'license_issued') {
+        return response()->json([
+            'success' => false,
+            'message' => 'This license cannot be revoked from its current status.',
+        ], 422);
+    }
+
+    $license->update([
+        'status' => 'license_revoked',
+        'revocation_reason' => trim($request->revocation_reason),
+        'revocation_date' => now(),
+        'revoked_by' => auth()->id()
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'License has been revoked successfully.',
+        'download_url' => route('license.licenses.download-revoked', $license->id)
+    ]);
 }
-    
-    
+
 
     
     
 
-    public function downloadRevokedLicense(License $license)
-    {
-        // Check if the license is revoked
-        if ($license->status !== 'license_revoked') {
-            return redirect()->back()->withErrors('This license is not revoked and cannot be downloaded.');
-        }
-
-        // Path to the revoked license file
-        $filePath = 'revoked_licenses/' . $license->id . '.pdf';
-
-        // Check if the file exists
-        if (!Storage::exists($filePath)) {
-            return redirect()->back()->withErrors('The revoked license file does not exist.');
-        }
-
-        // Return the file as a download response
-        return Storage::download($filePath, 'revoked_license_' . $license->id . '.pdf');
+  public function downloadRevokedLicense(License $license)
+{
+    if ($license->status !== 'license_revoked') {
+        return redirect()->back()->withErrors('This license is not revoked and cannot be downloaded.');
     }
+
+    $filePath = storage_path('app/revoked_licenses/' . $license->id . '.pdf');
+
+    if (!file_exists($filePath)) {
+        return redirect()->back()->withErrors('The revoked license file does not exist.');
+    }
+
+    return response()->download($filePath, 'revoked_license_' . $license->id . '.pdf');
+}
+
     
 
 // Add this new private method to get specific revoke text based on license type
