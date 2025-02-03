@@ -958,24 +958,110 @@ public function activityLog($id)
     
     
 
-  public function downloadRevokedLicense(License $license)
+public function downloadRevokedLicense(License $license)
 {
+    // Detailed logging
+    \Log::info('Attempting to download revoked license', [
+        'license_id' => $license->id,
+        'license_status' => $license->status
+    ]);
+
+    // Check license status
     if ($license->status !== 'license_revoked') {
+        \Log::warning('Attempted to download non-revoked license', [
+            'license_id' => $license->id,
+            'current_status' => $license->status
+        ]);
         return redirect()->back()->withErrors('This license is not revoked and cannot be downloaded.');
     }
 
+    // Construct file path
     $filePath = storage_path('app/revoked_licenses/' . $license->id . '.pdf');
 
+    // Comprehensive file checks
     if (!file_exists($filePath)) {
+        // Attempt to regenerate the PDF if it's missing
+        try {
+            $this->generateRevokedLicensePdf($license);
+        } catch (\Exception $e) {
+            \Log::error('Failed to regenerate revoked license PDF', [
+                'license_id' => $license->id,
+                'error' => $e->getMessage()
+            ]);
+            return redirect()->back()->withErrors('Unable to generate the revoked license file.');
+        }
+    }
+
+    // Verify file exists after potential regeneration
+    if (!file_exists($filePath)) {
+        \Log::error('Revoked license file still not found after regeneration', [
+            'license_id' => $license->id,
+            'file_path' => $filePath
+        ]);
         return redirect()->back()->withErrors('The revoked license file does not exist.');
     }
 
-    return response()->download($filePath, 'revoked_license_' . $license->id . '.pdf');
+    // Attempt to download
+    try {
+        return response()->download($filePath, 'revoked_license_' . $license->id . '.pdf');
+    } catch (\Exception $e) {
+        \Log::error('Error downloading revoked license', [
+            'license_id' => $license->id,
+            'error_message' => $e->getMessage()
+        ]);
+        return redirect()->back()->withErrors('An error occurred while downloading the license.');
+    }
+}
+protected function generateRevokedLicensePdf(License $license)
+{
+    // Ensure the directory exists
+    $directory = storage_path('app/revoked_licenses');
+    if (!file_exists($directory)) {
+        mkdir($directory, 0755, true);
+    }
+
+    // Determine the appropriate view based on license type
+    $viewPath = $this->getLicenseTemplatePath($license->licenseType->name);
+
+    // Get specific revoke text based on license type
+    $revokeText = $this->getRevokeText($license->licenseType->name);
+
+    // Generate PDF
+    $pdf = PDF::loadView($viewPath, [
+        'license' => $license,
+        'isRevoked' => true,  // Pass a flag to show revocation watermark
+        'revokeText' => $revokeText  // Pass custom revoke text
+    ]);
+
+    // Save PDF
+    $filePath = $directory . '/' . $license->id . '.pdf';
+    $pdf->save($filePath);
+
+    \Log::info('Revoked license PDF generated', [
+        'license_id' => $license->id,
+        'file_path' => $filePath,
+        'revoke_text' => $revokeText,
+        'template' => $viewPath
+    ]);
+
+    return $filePath;
 }
 
-    
+// Method to get appropriate template path
+private function getLicenseTemplatePath($licenseTypeName)
+{
+    $licenseTypeMapping = [
+        'export license for seacucumber' => 'license.license.secucumber',
+        'export license for petfish' => 'license.license.aquarium',
+        'export license for lobster' => 'license.license.lobster',
+        'export license for shark fin' => 'license.license.sharkfin',
+    ];
 
-// Add this new private method to get specific revoke text based on license type
+    return $licenseTypeMapping[strtolower(trim($licenseTypeName))] 
+           ?? 'license.license.secucumber'; // Default to sea cucumber template
+}
+
+// Method to get specific revoke text
 private function getRevokeText($licenseTypeName)
 {
     return match (strtolower(trim($licenseTypeName))) {
@@ -986,5 +1072,4 @@ private function getRevokeText($licenseTypeName)
         default => 'LICENSE REVOKED',
     };
 }
-
 }
