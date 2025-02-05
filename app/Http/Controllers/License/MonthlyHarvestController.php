@@ -10,6 +10,8 @@ use App\Repositories\License\SpeciesTrackingRepository;
 use App\Repositories\Reference\IslandsRepository;
 use App\Models\License\LicenseItem;  // Add this import
 use App\Models\License\LicenseType;  
+use App\Models\Reference\Island;  // Add this import
+use App\Models\License\Species;  
 use App\Models\License\Agent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -37,17 +39,38 @@ class MonthlyHarvestController extends Controller
 }
 
 
-    public function index()
-    {
-        return view('license.monthly-harvest.index');
-    }
+public function index()
+{
+    // Get all islands and species for the filters
+    $islands = Island::orderBy('name')->get();
+    $species = Species::orderBy('name')->get();
+    
+    return view('license.monthly-harvest.index', compact('islands', 'species'));
+}
 
-    public function getDataTables(Request $request, SpeciesTracking $speciesTracking)
-    {
-        $search = $request->input('search.value', '');
-        $query = $this->monthlyHarvestRepository->getForDataTable($search, $speciesTracking->id);
-        return DataTables::of($query)->make(true);
-    }
+public function getDataTables(Request $request, SpeciesTracking $speciesTracking)
+{
+    \Log::info('DataTables Request:', [
+        'filters' => $request->all(),
+        'search' => $request->input('search.value')
+    ]);
+
+    $search = $request->input('search.value', '');
+    $filters = [
+        'island' => $request->input('island'),
+        'month' => $request->input('month'),
+        'species' => $request->input('species'),
+        'applicant' => $request->input('applicant'),
+    ];
+
+    $query = $this->monthlyHarvestRepository->getForDataTable($search, $filters);
+    
+    \Log::info('Query Results Count:', [
+        'count' => $query->count()
+    ]);
+
+    return DataTables::of($query)->make(true);
+}
 
     public function create()
     {
