@@ -15,27 +15,28 @@ class MonthlyHarvestRepository extends CustomBaseRepository
     }
 
     public function getForDataTable($search = ''): Collection
-    {
-        $query = $this->getModelInstance()->newQuery();
+{
+    $query = $this->getModelInstance()->newQuery()->withTrashed()->with([
+        'licenseItem.species:id,name',
+        'applicant:id,first_name,last_name',
+        'island:id,name',
+    ]);
 
-        if (!empty($search)) {
-            $query->where(function ($q) use ($search) {
-                $searchLower = strtolower($search);
-                $q->whereRaw('CAST(month AS TEXT) LIKE ?', ['%' . $searchLower . '%'])
-                  ->orWhereRaw('CAST(year AS TEXT) LIKE ?', ['%' . $searchLower . '%'])
-                  ->orWhereRaw('CAST(quantity_harvested AS TEXT) LIKE ?', ['%' . $searchLower . '%'])
-                  ->orWhereRaw('LOWER(notes) LIKE ?', ['%' . $searchLower . '%']);
-            });
-        }
+    if (!empty($search)) {
+        $searchLower = strtolower($search);
 
-        return $query->with([
-            'licenseItem.species:id,name',
-            'applicant:id,first_name,last_name',
-            'island:id,name',
-           
-        ])
-        ->orderBy('year', 'desc')
+        $query->where(function ($q) use ($searchLower) {
+            $q->whereRaw('CAST(month AS TEXT) LIKE ?', ['%' . $searchLower . '%'])
+              ->orWhereRaw('CAST(year AS TEXT) LIKE ?', ['%' . $searchLower . '%'])
+              ->orWhereRaw('CAST(quantity_harvested AS TEXT) LIKE ?', ['%' . $searchLower . '%'])
+              ->orWhereRaw('LOWER(notes) LIKE ?', ['%' . $searchLower . '%']);
+        });
+    }
+
+    return $query->orderByDesc('year')
         ->orderBy('month', 'asc')
         ->get();
-    }
+}
+
+    
 }

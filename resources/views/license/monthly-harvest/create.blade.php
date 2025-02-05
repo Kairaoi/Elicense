@@ -123,6 +123,17 @@
                             @enderror
                         </div>
 
+                        <!<!-- License Type Selection -->
+<div class="form-group">
+    <label for="license_type_id">License Type</label>
+    <select name="license_type_id" id="license_type_id" class="form-control" required>
+        <option value="">Select License Type</option>
+        @foreach($licenseTypes as $id => $name)
+            <option value="{{ $id }}">{{ $name }}</option>
+        @endforeach
+    </select>
+</div>
+
                         <!-- License Items and Harvest Quantity -->
                         <div class="form-group mb-3">
                             <label class="form-label required-field">License Items and Harvest Quantity</label>
@@ -200,63 +211,141 @@
 
 @push('scripts')
 <script>
+// Wait for document ready
 $(document).ready(function() {
-    function loadQuota() {
-        const applicantId = $('#applicant_id').val();
-        const islandId = $('#island_id').val();
-
-        if (applicantId && islandId) {
-            const url = "{{ route('license.licenses.getLicenseItems') }}";
-
-            $.get(url, { applicant_id: applicantId, island_id: islandId })
-    .done(function(response) {
-        console.log('API Response:', response); // Debugging log
-
-        if (response.success && response.items.length > 0) {
-            let licenseItemsHtml = '';  // For generating the input fields
-
-            response.items.forEach(function(item) {
-                // Generate the HTML for each species with requested and available quota, and quantity input
-                licenseItemsHtml += `
-                    <div class="harvest-item">
-                        <div class="species-name">${item.species_name}</div>
-                        <div class="quota-value">
-                            Requested: ${item.requested_quota} kg | Available: ${item.remaining_quota} kg
-                        </div>
-                        <div class="quantity-input">
-                            <input type="number"
-                                name="harvested_quantity[${item.id}]"
-                                id="harvested_quantity_${item.id}"
-                                class="form-control @error('harvested_quantity.${item.id}') is-invalid @enderror"
-                                step="0.01"
-                                min="0"
-                                required>
-                            @error('harvested_quantity.${item.id}')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <input type="hidden" name="license_item_id[${item.id}]" value="${item.id}" />
-                    </div>
-                `;
-            });
-
-            $('#license-items-container').html(licenseItemsHtml); // Show all input fields for quantity harvested side by side
-        } else {
-            $('#license-items-container').html('No quota information available for this selection.');
-        }
-    })
-    .fail(function(jqXHR, textStatus, errorThrown) {
-        console.error('AJAX Error:', jqXHR.responseText);
-        $('#license-items-container').html('An error occurred while loading data.');
-    });
-
-        } else {
-            $('#license-items-container').html('Please select an applicant and island.');
-        }
+    // Function to clear and disable license type selection
+    function resetLicenseType() {
+        $('#license_type_id').val('').prop('disabled', true);
+        clearLicenseItems();
     }
 
-    // Trigger quota loading when applicant or island is changed
-    $('#applicant_id, #island_id').change(loadQuota);
+    // Function to clear license items
+    function clearLicenseItems() {
+        $('#license-items-container').empty();
+        // Or however you're displaying the license items
+    }
+
+    // Handle applicant selection
+    $('#applicant_id').on('change', function() {
+        if (!$(this).val()) {
+            resetLicenseType();
+            return;
+        }
+        
+        const applicantId = $(this).val();
+        
+        // Enable license type selection when applicant is selected
+        $('#license_type_id').prop('disabled', false);
+        
+        // Clear previous selections
+        $('#license_type_id').val('');
+        clearLicenseItems();
+    });
+
+    // Handle island selection
+    $('#island_id').on('change', function() {
+        if (!$(this).val()) {
+            clearLicenseItems();
+            return;
+        }
+        
+        // If all required fields are selected, fetch license items
+        const licenseTypeId = $('#license_type_id').val();
+        if (licenseTypeId) {
+            fetchLicenseItems();
+        }
+    });
+
+    // Handle license type selection
+    $('#license_type_id').on('change', function() {
+        if (!$(this).val()) {
+            clearLicenseItems();
+            return;
+        }
+        
+        fetchLicenseItems();
+    });
+
+    // Function to fetch license items
+    function fetchLicenseItems() {
+        const applicantId = $('#applicant_id').val();
+        const islandId = $('#island_id').val();
+        const licenseTypeId = $('#license_type_id').val();
+        
+        if (!applicantId || !islandId || !licenseTypeId) {
+            return;
+        }
+
+        $.ajax({
+            url: '{{ route("license.licenses.getLicenseItems") }}',
+            data: {
+                applicant_id: applicantId,
+                island_id: islandId,
+                license_type_id: licenseTypeId
+            },
+            success: function(response) {
+                if (response.success) {
+                    updateLicenseItemsTable(response.items);
+                } else {
+                    alert(response.message || 'No items found');
+                }
+            },
+            error: function(xhr) {
+                alert('Error fetching license items');
+                console.error(xhr);
+            }
+        });
+    }
+
+    // Function to update the license items table
+    function updateLicenseItemsTable(items) {
+        const container = $('#license-items-container');
+        container.empty();
+
+        if (items.length === 0) {
+            container.html('<p>No license items found</p>');
+            return;
+        }
+
+        let html = `
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Species</th>
+                        <th>Requested Quota</th>
+                        <th>Remaining Quota</th>
+                        <th>License Number</th>
+                        <th>Quantity Harvested</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        items.forEach((item) => {
+            html += `
+                <tr>
+                    <td>${item.species_name}</td>
+                    <td>${item.requested_quota}</td>
+                    <td>${item.remaining_quota}</td>
+                    <td>${item.license_number}</td>
+                    <td>
+                        <input type="number" 
+                               name="harvested_quantity[${item.id}]" 
+                               class="form-control"
+                               min="0"
+                               max="${item.remaining_quota}"
+                               required>
+                        <input type="hidden" 
+                               name="license_item_id[${item.id}]" 
+                               value="${item.id}">
+                    </td>
+                </tr>
+            `;
+        });
+
+        html += '</tbody></table>';
+        container.html(html);
+    }
 });
 </script>
 @endpush

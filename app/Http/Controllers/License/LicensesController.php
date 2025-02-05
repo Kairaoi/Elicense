@@ -1058,7 +1058,7 @@ private function getLicenseTemplatePath($licenseTypeName)
     ];
 
     return $licenseTypeMapping[strtolower(trim($licenseTypeName))] 
-           ?? 'license.license.secucumber'; // Default to sea cucumber template
+           ?? 'license.license.default'; // Default to sea cucumber template
 }
 
 // Method to get specific revoke text

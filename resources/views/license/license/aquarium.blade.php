@@ -146,7 +146,10 @@
     @endif
     <div class="content">
         <div class="header">
-        <img src="http://localhost/fisherylicense/public/images/coat_of_arms.png" alt="Coat of Arms of Kiribati">
+        <img src="{{ asset('storage/logos.png') }}" alt="Coat of Arms of Kiribati">
+
+
+
             <p><strong>GOVERNMENT OF KIRIBATI</strong></p>
             <p>MINISTRY OF FISHERIES AND MARINE RESOURCES DEVELOPMENT</p>
             <p>P.O.Box 64, Bairiki, Tarawa, Republic of Kiribati</p>

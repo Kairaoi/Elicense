@@ -9,6 +9,7 @@ use App\Repositories\License\MonthlyHarvestRepository;
 use App\Repositories\License\SpeciesTrackingRepository;
 use App\Repositories\Reference\IslandsRepository;
 use App\Models\License\LicenseItem;  // Add this import
+use App\Models\License\LicenseType;  
 use App\Models\License\Agent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -53,12 +54,13 @@ class MonthlyHarvestController extends Controller
         $applicants = $this->applicantsRepository->pluck();
         $islands = $this->islandsRepository->pluck();
         
-        // Generate months for the view (from 1 to 12)
+        // Get all license types for the dropdown
+        $licenseTypes = LicenseType::pluck('name', 'id');
+        
         $months = array_combine(range(1, 12), array_map(function($m) {
             return date('F', mktime(0, 0, 0, $m, 1));
         }, range(1, 12)));
         
-        // Generate years for the view (2 years before and 2 years after the current year)
         $currentYear = date('Y');
         $years = array_combine(
             range($currentYear - 2, $currentYear + 2),
@@ -69,63 +71,70 @@ class MonthlyHarvestController extends Controller
             'applicants', 
             'months', 
             'years', 
-            'islands'
+            'islands',
+            'licenseTypes'
         ));
     }
     
-    
     public function getLicenseItems(Request $request)
-{
-    $applicantId = $request->query('applicant_id');
-    $islandId = $request->query('island_id');
-    
-    if (!$applicantId || !$islandId) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Missing required parameters'
-        ], 400);
-    }
-
-    try {
-        $licenseItems = LicenseItem::with(['species', 'license'])
-            ->whereHas('license', function ($query) use ($applicantId) {
-                $query->where('applicant_id', $applicantId)
-                      ->where('status', 'license_issued');
-            })
-            ->where('island_id', $islandId)
-            ->get();
-
-        // Check if any license items exist
-        if ($licenseItems->isEmpty()) {
+    {
+        $applicantId = $request->query('applicant_id');
+        $islandId = $request->query('island_id');
+        $licenseTypeId = $request->query('license_type_id');
+        
+        if (!$applicantId || !$islandId || !$licenseTypeId) {
             return response()->json([
                 'success' => false,
-                'message' => 'No license items found for this selection'
-            ]);
+                'message' => 'Missing required parameters'
+            ], 400);
         }
 
-        // Map data properly
-        $mappedItems = $licenseItems->map(function ($item) {
-            return [
-                'id' => $item->id,
-                'species_name' => $item->species->name ?? 'N/A', 
-                'requested_quota' => $item->requested_quota, 
-                'remaining_quota' => $item->getRemainingQuota(),  
-                'license_number' => $item->license->license_number ?? 'Unknown'
-            ];
-        });
+        try {
+            // Get license items based on the license type and applicant
+            $licenseItems = LicenseItem::with(['species', 'license'])
+                ->whereHas('license', function ($query) use ($applicantId, $licenseTypeId) {
+                    $query->where('applicant_id', $applicantId)
+                          ->where('license_type_id', $licenseTypeId)
+                          ->where('status', 'license_issued');
+                })
+                ->whereHas('species', function ($query) use ($licenseTypeId) {
+                    $query->where('license_type_id', $licenseTypeId);
+                })
+                ->where('island_id', $islandId)
+                ->get();
 
-        return response()->json([
-            'success' => true,
-            'items' => $mappedItems
-        ]);
+            if ($licenseItems->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No license items found for this selection'
+                ]);
+            }
 
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false, 
-            'message' => 'Error fetching license items: ' . $e->getMessage()
-        ], 500);
+            $mappedItems = $licenseItems->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'species_name' => $item->species->name ?? 'N/A',
+                    'requested_quota' => $item->requested_quota,
+                    'remaining_quota' => $item->getRemainingQuota(),
+                    'license_number' => $item->license->license_number ?? 'Unknown',
+                    'unit_price' => $item->unit_price,
+                    'total_price' => $item->total_price
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'items' => $mappedItems
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error in getLicenseItems: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching license items: ' . $e->getMessage()
+            ], 500);
+        }
     }
-}
 
 public function store(Request $request)
 {
