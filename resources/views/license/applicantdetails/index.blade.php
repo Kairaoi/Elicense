@@ -12,7 +12,9 @@
                 <th>ID</th>
                 <th>License Number</th>
                 <th>License Type</th>
+                <th>Vat</th>
                 <th>Total Fee</th>
+                <th>Total Amount Inc Vat</th>
                 <th>Status</th>
                 <th>Issue Date</th>
                 <th>Expiry Date</th>
@@ -74,10 +76,24 @@ $(document).ready(function() {
                 }
             },
             { 
+                data: 'vat_amount',
+                render: function(data) {
+                    return `$${parseFloat(data).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                }
+            },
+            { 
                 data: 'total_fee',
                 render: function(data) {
-                    return `$${parseFloat(data).toFixed(2)}`;
+                    return `$${parseFloat(data).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
                 }
+            },
+            { 
+                data: null,
+                render: function(data) {
+                    let total = parseFloat(data.total_fee) + parseFloat(data.vat_amount);
+                    return `$${total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                },
+                title: "Total Amount (Incl. VAT)"
             },
             { 
                 data: 'status',
@@ -105,6 +121,7 @@ $(document).ready(function() {
         order: [[0, 'desc']]
     });
 });
+
 
 </script>
 @endpush

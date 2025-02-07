@@ -82,18 +82,22 @@ $(document).ready(function() {
             { 
                 data: 'total_fee',
                 render: function(data) {
-                    return '$' + parseFloat(data).toFixed(2);
+                    return `$${parseFloat(data).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
                 }
             },
-            { 
-                data: 'status',
-                render: function(data) {
-                    let statusClass = 'status-' + data.toLowerCase();
-                    let statusText = data.replace('_', ' ').charAt(0).toUpperCase() + 
-                                   data.slice(1).toLowerCase();
-                    return `<span class="status-badge ${statusClass}">${statusText}</span>`;
-                }
-            },
+            {
+    data: 'status',
+    render: function(data) {
+        let formattedStatus = data.replace('_', ' ').toLowerCase().split(' ')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+
+        let statusClass = 'status-' + data.toLowerCase().replace(/\s/g, '-');
+
+        return `<span class="status-badge ${statusClass}">${formattedStatus}</span>`;
+    }
+},
+
             {
                 data: null,
                 orderable: false,
