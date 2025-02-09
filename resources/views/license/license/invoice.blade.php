@@ -224,29 +224,29 @@
                             <td></td>
                             <td>{{ $item->species->name }}</td>
                             <td>{{ $item->requested_quota }}</td>
-                            <td>${{ number_format($item->unit_price, 2) }}</td>
-                            <td>${{ number_format($item->total_price, 2) }}</td>
+                            <td>{{ $currencyDetails['symbol'] }} {{ number_format($item->unit_price, 2) }}</td>
+                            <td>{{ $currencyDetails['symbol'] }} {{ number_format($item->total_price, 2) }}</td>
                         </tr>
                         @endforeach
                     @endforeach
                     <tr class="subtotal-row">
                         <td colspan="4">Subtotal</td>
-                        <td>${{ number_format($license->total_fee, 2) }}</td>
+                        <td>{{ $currencyDetails['symbol'] }} {{ number_format($license->total_fee, 2) }}</td>
                     </tr>
                     <tr class="vat-row">
                         <td colspan="4">VAT (12.5%)</td>
-                        <td>${{ number_format($license->vat_amount, 2) }}</td>
+                        <td>{{ $currencyDetails['symbol'] }} {{ number_format($license->vat_amount, 2) }}</td>
                     </tr>
                     <tr class="total-row">
                         <td colspan="4">Total Amount (Including VAT)</td>
-                        <td>${{ number_format($license->total_amount_with_vat, 2) }}</td>
+                        <td>{{ $currencyDetails['symbol'] }} {{ number_format($license->total_amount_with_vat, 2) }}</td>
                     </tr>
                 </tbody>
             </table>
 
             <div class="amount-in-words">
                 <p><strong>Amount in words:</strong> 
-                {{ $license->getAmountInWords() }} dollars only
+                {{ $license->getAmountInWords() }} {{ $currencyDetails['name'] }} dollars only
                 </p>
             </div>
 
@@ -259,6 +259,7 @@
                 <p><strong>Bank Name:</strong> ANZ Bank (Kiribati) Ltd</p>
                 <p><strong>Bank Address:</strong> Bairiki, Tarawa</p>
                 <p><strong>Reference:</strong> Invoice #{{ $license->invoice_number }}</p>
+                <p><strong>Currency:</strong> {{ $currencyDetails['full_name'] }}</p>
             </div>
 
             <div class="footer">

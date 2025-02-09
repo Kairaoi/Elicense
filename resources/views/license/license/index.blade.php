@@ -81,23 +81,28 @@ $(document).ready(function() {
             { data: 'license_type_name' },
             { 
                 data: 'total_fee',
-                render: function(data) {
-                    return `$${parseFloat(data).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                render: function(data, type, row) {
+                    let currencySymbol = 'AUD';
+                    if (row.license_type_name === 'Export License for Seacucumber') {
+                        currencySymbol = 'US';
+                    }
+                    return `${currencySymbol} ${parseFloat(data).toLocaleString(undefined, { 
+                        minimumFractionDigits: 2, 
+                        maximumFractionDigits: 2 
+                    })}`;
                 }
             },
             {
-    data: 'status',
-    render: function(data) {
-        let formattedStatus = data.replace('_', ' ').toLowerCase().split(' ')
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(' ');
+                data: 'status',
+                render: function(data) {
+                    let formattedStatus = data.replace('_', ' ').toLowerCase().split(' ')
+                        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                        .join(' ');
 
-        let statusClass = 'status-' + data.toLowerCase().replace(/\s/g, '-');
-
-        return `<span class="status-badge ${statusClass}">${formattedStatus}</span>`;
-    }
-},
-
+                    let statusClass = 'status-' + data.toLowerCase().replace(/\s/g, '-');
+                    return `<span class="status-badge ${statusClass}">${formattedStatus}</span>`;
+                }
+            },
             {
                 data: null,
                 orderable: false,

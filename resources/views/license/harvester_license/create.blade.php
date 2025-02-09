@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container mt-5" style="margin-top: 100px;">
+<div class="container mt-5">
     <div class="card">
         <div class="card-header">
             <h1>Create Harvester License</h1>
@@ -63,14 +63,13 @@
                         </div>
                     </div>
 
-                    <!-- Species Selection -->
+                    <!-- Species Selection (CheckBoxes) -->
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label for="species">Species</label>
-                            <select name="species[]" id="species" class="form-control" multiple required style="height: 150px;">
-                                <!-- Will be populated via JavaScript -->
-                            </select>
-                            <small class="text-muted">Hold Ctrl/Cmd to select multiple species</small>
+                            <label>Species</label>
+                            <div id="speciesContainer">
+                                <!-- Checkboxes will be added dynamically here -->
+                            </div>
                             @error('species')
                                 <small class="text-danger">{{ $message }}</small>
                             @enderror
@@ -90,21 +89,6 @@
                             @enderror
                         </div>
                     </div>
-
-                    <!-- Issue Date -->
-                    <!-- <div class="col-md-4">
-                        <div class="form-group">
-                            <label for="issue_date">Issue Date</label>
-                            <input type="date" name="issue_date" id="issue_date" class="form-control" required 
-                                value="{{ date('Y-m-d') }}">
-                            @error('issue_date')
-                                <small class="text-danger">{{ $message }}</small>
-                            @enderror
-                        </div>
-                    </div> -->
-
-                    <!-- Expiry Date -->
-                   
                 </div>
 
                 <!-- Payment Receipt -->
@@ -120,20 +104,9 @@
                 <div id="groupMembersSection" style="display: none;" class="mt-4">
                     <h3>Group Members</h3>
                     <small class="text-muted">Maximum 5 members allowed</small>
-                    
-                    <div id="groupMembersContainer">
-                        <div class="group-member border p-3 mb-3">
-                            <div class="form-group">
-                                <label>Member Name</label>
-                                <input type="text" name="group_members[0][name]" class="form-control" placeholder="Full Name">
-                            </div>
-                            <div class="form-group mt-2">
-                                <label>National ID</label>
-                                <input type="text" name="group_members[0][national_id]" class="form-control" placeholder="National ID">
-                            </div>
-                        </div>
-                    </div>
-                    
+
+                    <div id="groupMembersContainer"></div>
+
                     <button type="button" class="btn btn-secondary mb-3" id="addMemberBtn">
                         Add Member
                     </button>
@@ -159,8 +132,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const addMemberBtn = document.getElementById('addMemberBtn');
     const container = document.getElementById('groupMembersContainer');
     const licenseTypeSelect = document.getElementById('license_type');
-    const speciesSelect = document.getElementById('species');
-    let memberCount = 1;
+    const speciesContainer = document.getElementById('speciesContainer');
+    let memberCount = 0;
 
     // Store species data by license type
     const speciesByLicenseType = @json($speciesByLicenseType);
@@ -168,110 +141,66 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle license type change
     licenseTypeSelect.addEventListener('change', function() {
         const licenseTypeId = this.value;
-        
-        // Clear current options
-        speciesSelect.innerHTML = '';
-        
-        // If license type selected, populate species
+        speciesContainer.innerHTML = '';
+
         if (licenseTypeId && speciesByLicenseType[licenseTypeId]) {
             speciesByLicenseType[licenseTypeId].forEach(function(species) {
-                const option = new Option(species.name, species.id);
-                speciesSelect.add(option);
+                const checkbox = document.createElement('div');
+                checkbox.classList.add('form-check');
+                checkbox.innerHTML = `
+                    <input class="form-check-input" type="checkbox" name="species[]" value="${species.id}" id="species_${species.id}">
+                    <label class="form-check-label" for="species_${species.id}">${species.name}</label>
+                `;
+                speciesContainer.appendChild(checkbox);
             });
         }
     });
 
     // Handle applicant selection change
     applicantSelect.addEventListener('change', function() {
-        const selected = this.options[this.selectedIndex];
+        const selected = applicantSelect.options[applicantSelect.selectedIndex];
         const isGroup = selected.dataset.isGroup === '1';
-        
+
         feeInput.value = isGroup ? '500.00' : '25.00';
         groupSection.style.display = isGroup ? 'block' : 'none';
-        
+
         if (!isGroup) {
-            // Clear group members section for individual applications
             container.innerHTML = '';
             memberCount = 0;
-        } else if (container.children.length === 0) {
-            // Add first member field for group applications
-            addMemberField();
         }
     });
 
+    // Add Group Member
     function addMemberField() {
         if (memberCount >= 5) {
             alert('Maximum 5 members allowed');
             return;
         }
 
-        const template = `
-            <div class="group-member border p-3 mb-3">
-                <div class="form-group">
-                    <label>Member Name</label>
-                    <input type="text" name="group_members[${memberCount}][name]" class="form-control" placeholder="Full Name" ${memberCount === 0 ? 'required' : ''}>
-                </div>
-                <div class="form-group mt-2">
-                    <label>National ID</label>
-                    <input type="text" name="group_members[${memberCount}][national_id]" class="form-control" placeholder="National ID" ${memberCount === 0 ? 'required' : ''}>
-                </div>
-                ${memberCount > 0 ? '<button type="button" class="btn btn-danger btn-sm mt-2 remove-member">Remove</button>' : ''}
+        const memberDiv = document.createElement('div');
+        memberDiv.classList.add('group-member', 'border', 'p-3', 'mb-3');
+        memberDiv.innerHTML = `
+            <div class="form-group">
+                <label>Member Name</label>
+                <input type="text" name="group_members[${memberCount}][name]" class="form-control" required>
             </div>
+            <div class="form-group mt-2">
+                <label>National ID</label>
+                <input type="text" name="group_members[${memberCount}][national_id]" class="form-control" required>
+            </div>
+            <button type="button" class="btn btn-danger btn-sm mt-2 remove-member">Remove</button>
         `;
-        
-        container.insertAdjacentHTML('beforeend', template);
+
+        container.appendChild(memberDiv);
         memberCount++;
     }
 
-    // Add Member button handler
     addMemberBtn.addEventListener('click', addMemberField);
 
-    // Remove member handler
     container.addEventListener('click', function(e) {
         if (e.target.classList.contains('remove-member')) {
             e.target.closest('.group-member').remove();
             memberCount--;
-        }
-    });
-
-    // Form submission handler
-    document.getElementById('harvesterLicenseForm').addEventListener('submit', function(event) {
-        // Validate applicant selection
-        const selected = applicantSelect.options[applicantSelect.selectedIndex];
-        const isGroup = selected.dataset.isGroup === '1';
-        
-        if (isGroup) {
-            const members = document.querySelectorAll('.group-member');
-            if (members.length === 0) {
-                event.preventDefault();
-                alert('Please add at least one group member');
-                return;
-            }
-
-            // Validate member fields
-            let isValid = true;
-            members.forEach((member, index) => {
-                const nameInput = member.querySelector('input[name$="[name]"]');
-                const idInput = member.querySelector('input[name$="[national_id]"]');
-                
-                if (!nameInput.value.trim() || !idInput.value.trim()) {
-                    isValid = false;
-                }
-            });
-
-            if (!isValid) {
-                event.preventDefault();
-                alert('Please fill in all member details');
-                return;
-            }
-        }
-
-        // Validate species selection
-        const selectedSpecies = Array.from(speciesSelect.selectedOptions);
-        if (selectedSpecies.length === 0) {
-            event.preventDefault();
-            alert('Please select at least one species');
-            return;
         }
     });
 });

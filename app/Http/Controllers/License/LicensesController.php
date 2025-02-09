@@ -700,25 +700,88 @@ if (!$applicant) {
         return response()->json(['message' => 'License deleted successfully']);
     }
 
-    
-
-    public function showInvoice(License $license)
+   /**
+ * Get currency details based on license type
+ * 
+ * @param string $licenseTypeName
+ * @return array
+ */
+private function getCurrencyDetails($licenseTypeName)
 {
-   
-    return view('license.license.invoice', ['license' => $license, 'isPdfDownload' => false]);
+    // Normalize the license type name to handle case sensitivity
+    $licenseTypeName = trim($licenseTypeName);
+    
+    switch ($licenseTypeName) {
+        case 'Export License for Seacucumber':
+            return [
+                'symbol' => 'AUD',
+                'name' => 'Australian',
+                'full_name' => 'Australian Dollars (AUD)'
+            ];
+        case 'Export License for Petfish':
+            return [
+                'symbol' => 'USD',
+                'name' => 'US',
+                'full_name' => 'US Dollars (USD)'
+            ];
+        default:
+            return [
+                'symbol' => 'USD',
+                'name' => 'US',
+                'full_name' => 'US Dollars (USD)'
+            ];
+    }
 }
 
+/**
+ * Show invoice
+ *
+ * @param License $license
+ * @return Response
+ */
+public function showInvoice(License $license)
+{
+    // Load the license type relationship if not already loaded
+    if (!$license->relationLoaded('licenseType')) {
+        $license->load('licenseType');
+    }
+    
+    $currencyDetails = $this->getCurrencyDetails($license->licenseType->name);
+    
+    // Add logging to debug currency details
+    Log::info('License Type: ' . $license->licenseType->name);
+    Log::info('Currency Details: ' . json_encode($currencyDetails));
+    
+    return view('license.license.invoice', [
+        'license' => $license, 
+        'isPdfDownload' => false,
+        'currencyDetails' => $currencyDetails
+    ]);
+}
 
+/**
+ * Download invoice
+ *
+ * @param int $id
+ * @return Response
+ */
 public function downloadInvoice($id)
 {
     $license = License::with(['licenseType', 'applicant', 'licenseItems.species'])->findOrFail($id);
-
-    $pdf = PDF::loadView('license.license.invoice', ['license' => $license, 'isPdfDownload' => true]);
     
-    // Kanakoa te email ma te PDF attachment
-//    Mail::to($license->applicant->email)->send(new InvoiceEmail($license, $pdf));
+    // Ensure we have the correct currency details
+    $currencyDetails = $this->getCurrencyDetails($license->licenseType->name);
+    
+    // Add logging to debug currency details
+    Log::info('Download Invoice - License Type: ' . $license->licenseType->name);
+    Log::info('Download Invoice - Currency Details: ' . json_encode($currencyDetails));
 
-    // Kaoka te PDF download
+    $pdf = PDF::loadView('license.license.invoice', [
+        'license' => $license, 
+        'isPdfDownload' => true,
+        'currencyDetails' => $currencyDetails
+    ]);
+    
     return $pdf->download('invoice_' . $license->invoice_number . '.pdf');
 }
 
