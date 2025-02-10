@@ -69,7 +69,7 @@
         }
 
         .header img {
-            max-width: 100px; /* Adjust the size as needed */
+            max-width: 140px; /* Adjust the size as needed */
             margin-bottom: 10px;
         }
 
@@ -142,15 +142,12 @@
         <div class="watermark-revoked">REVOKED</div>
         <div class="watermark-revoked-text">License No Longer Valid</div>
     @else
-        <div class="watermark">DRAFTED</div>
+        <div class="watermark"></div>
     @endif
     <div class="content">
         <div class="header">
-        <img src="{{ asset('storage/logos.png') }}" alt="Coat of Arms of Kiribati">
-
-
-
-            <p><strong>GOVERNMENT OF KIRIBATI</strong></p>
+        <img src="{{ public_path('images/coat_ovf_arms.png') }}" alt="Coat of Arms of Kiribati">
+        <p><strong>GOVERNMENT OF KIRIBATI</strong></p>
             <p>MINISTRY OF FISHERIES AND MARINE RESOURCES DEVELOPMENT</p>
             <p>P.O.Box 64, Bairiki, Tarawa, Republic of Kiribati</p>
             <p>Tel: (686) 21099 | Fax: (686) 21120</p>

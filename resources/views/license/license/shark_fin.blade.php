@@ -4,56 +4,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shark Fin Regulation 2024 License</title>
+    <title>Sea Cucumber Regulation 2024 License</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 10px;
             line-height: 1.2;
-            position: relative;
-        }
-
-        .watermark-revoked {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(-45deg);
-            font-size: 120px;
-            color: rgba(255, 0, 0, 0.5);
-            pointer-events: none;
-            z-index: 1000;
-            white-space: nowrap;
-            user-select: none;
-            font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-        }
-
-        .watermark-revoked-text {
-            position: fixed;
-            top: 60%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(-45deg);
-            font-size: 60px;
-            color: rgba(255, 0, 0, 0.5);
-            pointer-events: none;
-            z-index: 1000;
-            white-space: nowrap;
-            user-select: none;
-            font-weight: bold;
-        }
-
-        @media print {
-            .watermark-revoked,
-            .watermark-revoked-text {
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
         }
 
         .header {
             text-align: center;
             margin-bottom: 10px;
         }
+
+        .header img {
+    width: 140px; /* Increase size from 100px to 150px */
+    height: auto;
+    margin-bottom: 2px;
+}
 
         .header p {
             margin: 3px;
@@ -106,39 +74,57 @@
         .content {
             max-width: 700px;
             margin: 0 auto;
-            position: relative;
-            z-index: 1;
+        }
+
+        .watermark-revoked {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 120px;
+            color: rgba(255, 0, 0, 0.5);
+            pointer-events: none;
+            z-index: 1000;
+            white-space: nowrap;
+            user-select: none;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .watermark-revoked-text {
+            position: fixed;
+            top: 60%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 60px;
+            color: rgba(255, 0, 0, 0.5);
+            pointer-events: none;
+            z-index: 1000;
+            white-space: nowrap;
+            user-select: none;
+            font-weight: bold;
         }
 
         @media print {
-            .watermark {
+            .watermark-revoked,
+            .watermark-revoked-text {
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
-        }
-
-        .coat-of-arms {
-            width: 100px; /* Adjust size as necessary */
-            margin: 0 auto; /* Center the image */
         }
     </style>
 </head>
 
 <body>
-@if(isset($isRevoked) && $isRevoked)
+    @if(isset($isRevoked) && $isRevoked)
         <div class="watermark-revoked">REVOKED</div>
         <div class="watermark-revoked-text">License No Longer Valid</div>
     @else
-        <div class="watermark">DRAFTED</div>
+        <div class="watermark"></div>
     @endif
-    <div class="watermark">DRAFTED</div>
     <div class="content">
         <div class="header">
-        @if(App::environment('local'))
-    <img src="http://localhost/fisherylicense/public/images/coat_of_arms.png" alt="Coat of Arms of Kiribati">
-@else
-    <img src="https://coastal-elicense.fisheries.gov.ki/images/coat_of_arms.png" alt="Coat of Arms of Kiribati">
-@endif
+        <img src="{{ public_path('images/coat_ovf_arms.png') }}" alt="Coat of Arms of Kiribati">
             <p><strong>GOVERNMENT OF KIRIBATI</strong></p>
             <p>MINISTRY OF FISHERIES AND MARINE RESOURCES DEVELOPMENT</p>
             <p>P.O.Box 64, Bairiki, Tarawa, Republic of Kiribati</p>
@@ -146,7 +132,7 @@
             <p>Email: <a href="mailto:info@mfmrd.gov.ki">info@mfmrd.gov.ki</a></p>
         </div>
 
-        <h1>Shark Fin Regulation 2024</h1>
+        <h1>Shark  Regulation 2024</h1>
         <h2>{{ $license->licenseType->name }}<br>[Regulation 11(1)]</h2>
         
         <div class="license-number"><strong>License No.</strong> {{ $license->license_number }}</div>
@@ -159,17 +145,19 @@
         
         <ol class="conditions">
             <li>License is not transferable;</li>
-            <li>License valid until the allocated shark fin quota is reached or expiry date is due;</li>
-            <li>License must be displayed prominently at the Head Office of the Business;</li>
-            <li>Must be presented to an authorized officer upon request;</li>
-            <li>Licensee must comply with all legal requirements and cooperate with authorized officers during inspections or investigations;</li>
-            <li>Licensee must not exceed the allowed shark fin harvest quota as stated in the license;</li>
-            <li>Licensee must ensure shark fins are collected only from permitted areas and within the allocated time period;</li>
-            <li>Shark fin collection must be documented, and detailed reports must be submitted to the Ministry as per the reporting schedule;</li>
-            <li>Licensee must adhere to all sustainability guidelines and ensure minimal harm to non-target species;</li>
-            <li>It is prohibited to harvest or trade fins from protected shark species;</li>
-            <li>Licensee must cease operations immediately if found in violation of the Shark Fin Regulation;</li>
-            <li>License fees must be paid by November 30th of each fiscal year.</li>
+            <li>License valid until your allocated quota is reached;</li>
+            <li>Must be exhibited at the Head Office of the Business;</li>
+            <li>Must be presented to an authorised officer upon request;</li>
+            <li>Licensee must cooperate and assist an authorised officer upon request, while the said officer is executing his/her functions under the regulation or the Act;</li>
+            <li>Licensee must collect sea cucumber (live or dried) from listed Fishers stated in the application form (schedule I);</li>
+            <li>Licensee must ensure Sea Cucumber species be separated in accordance to species per Island until ready to be sealed for export, and must not exceed 25kg per bag or packaging;</li>
+            <li>Licensee must keep a record of all supplied Sea cucumber from listed fishers in application form (schedule I);</li>
+            <li>Quota is not transferable in terms of spatial and time;</li>
+            <li>Licensee must not operate and harvest Sea cucumber in the uninhabited islands of the Line and Phoenix groups;</li>
+            <li>Licensee not allowed to assist and provide SCUBA gears to local fishers;</li>
+            <li>Licensee must not buy sea cucumber that are harvested under clause 8 and 10 above;</li>
+            <li>Licensee must cease all operations once annual quota is exhausted;</li>
+            <li>Licensee shall pay their license fee no later than November at every physical year of operation.</li>
         </ol>
 
         <p>
@@ -183,5 +171,4 @@
         </div>
     </div>
 </body>
-
 </html>

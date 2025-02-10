@@ -894,7 +894,18 @@ public function downloadLicense(License $license)
         return redirect()->back()->with('error', 'No template found for this license type.');
     }
 
-    $pdf = PDF::loadView($view, compact('license'));
+    // Add image handling
+    $imagePath = public_path('images/coat_of_arms.png');
+    $imageData = '';
+    if (file_exists($imagePath)) {
+        $imageData = base64_encode(file_get_contents($imagePath));
+    }
+    
+    $pdf = PDF::loadView($view, [
+        'license' => $license,
+        'imageData' => $imageData
+    ]);
+    
     return $pdf->download('license-' . $license->license_number . '.pdf');
 }
 

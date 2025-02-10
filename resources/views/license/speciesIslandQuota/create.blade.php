@@ -31,10 +31,7 @@
             <input type="number" class="form-control" name="island_quota" id="island_quota" required min="0">
         </div>
 
-        <div class="form-group">
-            <label for="remaining_quota">Remaining Quota</label>
-            <input type="number" class="form-control" name="remaining_quota" id="remaining_quota" required min="0">
-        </div>
+        
 
         <div class="form-group">
             <label for="year">Year</label>

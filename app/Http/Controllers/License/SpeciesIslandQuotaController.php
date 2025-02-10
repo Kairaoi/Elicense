@@ -76,25 +76,28 @@ class SpeciesIslandQuotaController extends Controller
      * @return Response
      */
     public function store(Request $request)
-    {
-        // Validate request data
-        $data = $request->validate([
-            'species_id'      => 'required|exists:species,id',
-            'island_id'       => 'required|exists:islands,id',
-            'island_quota'    => 'required|numeric|min:0',
-            'remaining_quota' => 'required|numeric|min:0',
-            'year'            => 'required|integer',
-        ]);
+{
+    // Validate request data (removed remaining_quota validation)
+    $data = $request->validate([
+        'species_id'   => 'required|exists:species,id',
+        'island_id'    => 'required|exists:islands,id',
+        'island_quota' => 'required|numeric|min:0',
+        'year'         => 'required|integer',
+    ]);
 
-        // Track the creator's ID
-        $data['created_by'] = auth()->check() ? auth()->id() : null;
+    // Track the creator's ID
+    $data['created_by'] = auth()->check() ? auth()->id() : null;
 
-        // Save the species island quota using the repository
-        $speciesIslandQuota = $this->speciesIslandQuotaRepository->create($data);
+    // Calculate remaining_quota based on island_quota
+    $data['remaining_quota'] = $data['island_quota'];
 
-        // Redirect with success message
-        return redirect()->route('species-island-quotas.quota.index')->with('success', 'Species Island Quota created successfully.');
-    }
+    // Save the species island quota using the repository
+    $speciesIslandQuota = $this->speciesIslandQuotaRepository->create($data);
+
+    // Redirect with success message
+    return redirect()->route('species-island-quotas.quota.index')->with('success', 'Species Island Quota created successfully.');
+}
+
 
     /**
      * Display the specified species island quota.

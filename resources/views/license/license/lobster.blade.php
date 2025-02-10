@@ -55,9 +55,10 @@
         }
 
         .header img {
-            width: 100px; /* Adjust size as needed */
-            height: auto; /* Maintain aspect ratio */
-        }
+    width: 140px; /* Increase size from 100px to 150px */
+    height: auto;
+    margin-bottom: 2px;
+}
 
         .header p {
             margin: 3px;
@@ -142,26 +143,20 @@
         <div class="watermark-revoked">REVOKED</div>
         <div class="watermark-revoked-text">License No Longer Valid</div>
     @else
-        <div class="watermark">DRAFTED</div>
+        <div class="watermark"></div>
     @endif
-    <div class="watermark">DRAFTED</div>
+    <div class="watermark"></div>
     <main class="content">
         
-        <header>
-            <div class="header">
-            @if(App::environment('local'))
-    <img src="http://localhost/fisherylicense/public/images/coat_of_arms.png" alt="Coat of Arms of Kiribati">
-@else
-    <img src="https://coastal-elicense.fisheries.gov.ki/images/coat_of_arms.png" alt="Coat of Arms of Kiribati">
-@endif
+    <div class="header">
+        <img src="{{ public_path('images/coat_ovf_arms.png') }}" alt="Coat of Arms of Kiribati">
+            <p><strong>GOVERNMENT OF KIRIBATI</strong></p>
+            <p>MINISTRY OF FISHERIES AND MARINE RESOURCES DEVELOPMENT</p>
+            <p>P.O.Box 64, Bairiki, Tarawa, Republic of Kiribati</p>
+            <p>Tel: (686) 21099 | Fax: (686) 21120</p>
+            <p>Email: <a href="mailto:info@mfmrd.gov.ki">info@mfmrd.gov.ki</a></p>
+        </div>
 
-                <p><strong>GOVERNMENT OF KIRIBATI</strong></p>
-                <p>MINISTRY OF FISHERIES AND MARINE RESOURCES DEVELOPMENT</p>
-                <p>P.O.Box 64, Bairiki, Tarawa, Republic of Kiribati</p>
-                <p>Tel: (686) 21099 | Fax: (686) 21120</p>
-                <p>Email: <a href="mailto:info@mfmrd.gov.ki">Contact Us via Email</a></p>
-            </div>
-        </header>
 
         <h1>Lobster Regulation 2024</h1>
         <h2>{{ $license->licenseType->name ?? 'License Type Not Provided' }}<br>[Regulation 11(1)]</h2>

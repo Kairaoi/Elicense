@@ -8,42 +8,42 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 10px; /* Reduced margin */
-            line-height: 1.2; /* Reduced line spacing */
+            margin: 10px;
+            line-height: 1.2;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 10px; /* Reduced bottom margin */
+            margin-bottom: 10px;
         }
 
         .header img {
-            width: 100px; /* Set a suitable width for the coat of arms */
-            height: auto; /* Maintain aspect ratio */
-            margin-bottom: 5px; /* Space between image and text */
-        }
+    width: 140px; /* Increase size from 100px to 150px */
+    height: auto;
+    margin-bottom: 2px;
+}
 
         .header p {
-            margin: 3px; /* Reduced paragraph margin */
-            font-size: 14px; /* Reduced font size */
+            margin: 3px;
+            font-size: 14px;
         }
 
         h1 {
             text-align: center;
-            font-size: 22px; /* Reduced font size */
-            margin-bottom: 8px; /* Reduced bottom margin */
+            font-size: 22px;
+            margin-bottom: 8px;
         }
 
         h2 {
             text-align: center;
-            font-size: 18px; /* Reduced font size */
-            margin: 10px 0; /* Reduced margin */
+            font-size: 18px;
+            margin: 10px 0;
         }
 
         h3 {
-            font-size: 16px; /* Reduced font size */
-            margin-top: 8px; /* Reduced margin */
-            margin-bottom: 5px; /* Reduced bottom margin */
+            font-size: 16px;
+            margin-top: 8px;
+            margin-bottom: 5px;
             text-align: center;
             font-weight: bold;
             color: #2c3e50;
@@ -51,30 +51,31 @@
 
         .license-number {
             font-weight: bold;
-            margin: 5px 0; /* Reduced margin */
+            margin: 5px 0;
             text-align: center;
         }
 
         .conditions {
-            margin: 8px 0; /* Reduced margin */
+            margin: 8px 0;
             padding-left: 15px;
-            font-size: 14px; /* Reduced font size */
+            font-size: 14px;
         }
 
         .conditions li {
-            margin-bottom: 3px; /* Reduced space between list items */
+            margin-bottom: 3px;
         }
 
         .signature {
-            margin-top: 15px; /* Reduced margin */
+            margin-top: 15px;
             text-align: right;
-            font-size: 14px; /* Reduced font size */
+            font-size: 14px;
         }
 
         .content {
-            max-width: 700px; /* Reduced max width */
+            max-width: 700px;
             margin: 0 auto;
         }
+
         .watermark-revoked {
             position: fixed;
             top: 50%;
@@ -115,27 +116,15 @@
 </head>
 
 <body>
-
-@php
-    $localPath = public_path('images/coat_of_arms.png');
-    $imageUrl = file_exists($localPath) 
-        ? asset('images/coat_of_arms.png')
-        : 'https://coastal-elicense.fisheries.gov.ki/images/coat_of_arms.png';
-@endphp
-
-@if(isset($isRevoked) && $isRevoked)
+    @if(isset($isRevoked) && $isRevoked)
         <div class="watermark-revoked">REVOKED</div>
         <div class="watermark-revoked-text">License No Longer Valid</div>
     @else
-        <div class="watermark">DRAFTED</div>
+        <div class="watermark"></div>
     @endif
     <div class="content">
         <div class="header">
-        @if(App::environment('local'))
-        <img src="{{ $imageUrl }}" alt="Coat of Arms of Kiribati">
-@else
-    <img src="https://coastal-elicense.fisheries.gov.ki/images/coat_of_arms.png" alt="Coat of Arms of Kiribati">
-@endif
+        <img src="{{ public_path('images/coat_ovf_arms.png') }}" alt="Coat of Arms of Kiribati">
             <p><strong>GOVERNMENT OF KIRIBATI</strong></p>
             <p>MINISTRY OF FISHERIES AND MARINE RESOURCES DEVELOPMENT</p>
             <p>P.O.Box 64, Bairiki, Tarawa, Republic of Kiribati</p>
@@ -182,5 +171,4 @@
         </div>
     </div>
 </body>
-
 </html>
