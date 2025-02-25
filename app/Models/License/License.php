@@ -201,4 +201,5 @@ class License extends Model
 
     return ucfirst(trim($result));
 }
+
 }

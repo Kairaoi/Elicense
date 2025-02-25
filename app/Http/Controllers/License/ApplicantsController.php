@@ -27,6 +27,8 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\UserCreated;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission; 
+use App\Mail\ApplicantXMLMail;
+
 
 
 class ApplicantsController extends Controller
@@ -85,88 +87,109 @@ class ApplicantsController extends Controller
      * @return Response
      */
 
-
-     public function store(StoreApplicantRequest $request) {
-        try {
-            $data = $request->validated();
-            $data['created_by'] = auth()->check() ? auth()->id() : 0;
-            $data['status'] = 'pending';
-            $data['submitted_at'] = now();
-            $data['ip_address'] = $request->ip();
-    
-            $application = $this->applicantsRepository->create($data);
-    
-            activity()
-                ->performedOn($application)
-                ->causedBy(auth()->user())
-                ->withProperties([
-                    'ip_address' => $request->ip(),
-                    'user_agent' => $request->userAgent()
-                ])
-                ->log('created');
-    
-            $password = Str::random(8);
-            $user = User::create([
-                'name' => $data['first_name'] . ' ' . $data['last_name'],
-                'email' => $data['email'],
-                'password' => Hash::make($password),
-                'applicant_id' => $application->id
-            ]);
-    
-            // Create applicant role if it doesn't exist
-            $applicantRole = Role::firstOrCreate(['name' => 'applicant']);
-            
-            // Create view-applicants permission if it doesn't exist
-            $viewApplicantsPermission = Permission::firstOrCreate(['name' => 'view.applicants']);
-            
-            // Assign permission to role if not already assigned
-            if (!$applicantRole->hasPermissionTo('view.applicants')) {
-                $applicantRole->givePermissionTo($viewApplicantsPermission);
-            }
-    
-            // Assign role to user
-            $user->assignRole($applicantRole);
-    
-            \Log::info('Generated password for applicant', [
-                'user_id' => $user->id,
-                'applicant_id' => $application->id,
-                'password' => $password,
-            ]);
-    
-            \Log::info('User account created for applicant', [
-                'user_id' => $user->id,
-                'applicant_id' => $application->id,
-            ]);
-    
-            session(['temp_applicant_id' => $application->id]);
-    
-            $xml = new \SimpleXMLElement('<applicant/>');
-            $xml->addChild('first_name', $data['first_name']);
-            $xml->addChild('last_name', $data['last_name']);
-            $xml->addChild('username', $data['email']);
-            $xml->addChild('password', $password);
-            $xml->addChild('applicant_id', $application->id);
-            $xml->addChild('status', 'pending');
-            $xml->addChild('submitted_at', $data['submitted_at']);
-    
-            $xmlString = $xml->asXML();
-    
-            return response()->view('xml_download', [
-                'xml' => $xmlString
-            ]);
-    
-        } catch (\Exception $e) {
-            \Log::error('Application submission failed', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-    
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'There was a problem submitting your application. Please try again.');
-        }
-    }
-    
+     public function store(StoreApplicantRequest $request)
+     {
+         try {
+             $data = $request->validated();
+             $data['created_by'] = auth()->check() ? auth()->id() : 0;
+             $data['status'] = 'pending';
+             $data['submitted_at'] = now();
+             $data['ip_address'] = $request->ip();
+     
+             $application = $this->applicantsRepository->create($data);
+     
+             activity()
+                 ->performedOn($application)
+                 ->causedBy(auth()->user())
+                 ->withProperties([
+                     'ip_address' => $request->ip(),
+                     'user_agent' => $request->userAgent()
+                 ])
+                 ->log('created');
+     
+             $password = Str::random(8);
+             $user = User::create([
+                 'name' => $data['first_name'] . ' ' . $data['last_name'],
+                 'email' => $data['email'],
+                 'password' => Hash::make($password),
+                 'applicant_id' => $application->id
+             ]);
+     
+             // Create applicant role if it doesn't exist
+             $applicantRole = Role::firstOrCreate(['name' => 'applicant']);
+     
+             // Create view-applicants permission if it doesn't exist
+             $viewApplicantsPermission = Permission::firstOrCreate(['name' => 'view.applicants']);
+     
+             // Assign permission to role if not already assigned
+             if (!$applicantRole->hasPermissionTo('view.applicants')) {
+                 $applicantRole->givePermissionTo($viewApplicantsPermission);
+             }
+     
+             // Assign role to user
+             $user->assignRole($applicantRole);
+     
+             \Log::info('Generated password for applicant', [
+                 'user_id' => $user->id,
+                 'applicant_id' => $application->id,
+                 'password' => $password,
+             ]);
+     
+             \Log::info('User account created for applicant', [
+                 'user_id' => $user->id,
+                 'applicant_id' => $application->id,
+             ]);
+     
+             session(['temp_applicant_id' => $application->id]);
+     
+             // Create XML structure
+             $xml = new \SimpleXMLElement('<applicant/>');
+             $xml->addChild('first_name', $data['first_name']);
+             $xml->addChild('last_name', $data['last_name']);
+             $xml->addChild('username', $data['email']);
+             $xml->addChild('password', $password);
+             $xml->addChild('applicant_id', $application->id);
+             $xml->addChild('status', 'pending');
+             $xml->addChild('submitted_at', $data['submitted_at']);
+     
+             // Format XML
+             $dom = new \DOMDocument('1.0', 'UTF-8');
+             $dom->preserveWhiteSpace = false;
+             $dom->formatOutput = true;
+             $domXml = dom_import_simplexml($xml);
+             $domXml = $dom->importNode($domXml, true);
+             $dom->appendChild($domXml);
+     
+             // Add a comment at the top
+             $comment = $dom->createComment(' Please do not share this file with anyone. ');
+             $dom->insertBefore($comment, $dom->documentElement);
+     
+             // Save XML as string
+             $xmlString = $dom->saveXML();
+     
+             // Save XML to a temporary file
+             $xmlFilePath = storage_path('app/temp_applicant_' . $application->id . '.xml');
+             file_put_contents($xmlFilePath, $xmlString);
+     
+             // Send XML file as email attachment
+             Mail::to($user->email)->send(new ApplicantXMLMail($xmlFilePath));
+     
+             // Redirect to license creation page
+             return redirect()->route('license.licenses.create')
+                 ->with('success', 'Application submitted successfully.');
+     
+         } catch (\Exception $e) {
+             \Log::error('Application submission failed', [
+                 'error' => $e->getMessage(),
+                 'trace' => $e->getTraceAsString(),
+             ]);
+     
+             return redirect()->back()
+                 ->withInput()
+                 ->with('error', 'There was a problem submitting your application. Please try again.');
+         }
+     }
+     
 
     /**
      * Display the specified license applicant.

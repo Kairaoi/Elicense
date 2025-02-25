@@ -2,12 +2,17 @@
 
 @push('styles')
 <style>
-    /* Custom styling for modern look */
+    /* Custom Modern Styling */
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: #f8f9fc;
+    }
+
     .form-control, .form-select {
-        padding: 0.85rem 1.2rem;
+        padding: 14px;
         border-radius: 12px;
         border: 2px solid #d1d3e2;
-        transition: all 0.3s ease;
+        transition: all 0.3s ease-in-out;
     }
 
     .form-control:focus, .form-select:focus {
@@ -17,31 +22,33 @@
 
     .section-title {
         color: #2c3e50;
-        font-size: 1.25rem;
-        font-weight: 600;
-        padding-bottom: 10px;
-        border-bottom: 2px solid #4e73df;
-        margin-bottom: 30px;
+        font-size: 1.5rem;
+        font-weight: bold;
+        padding-bottom: 12px;
+        border-bottom: 3px solid #4e73df;
+        margin-bottom: 35px;
+        text-transform: uppercase;
     }
 
     .required-mark {
         color: #e74a3b;
         margin-left: 5px;
+        font-size: 1.2rem;
     }
 
     .custom-card {
         border: none;
         border-radius: 15px;
-        box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
         background: #fff;
     }
 
     .btn-custom-primary {
         background: linear-gradient(45deg, #4e73df, #224abe);
         border: none;
-        padding: 14px 40px;
-        border-radius: 10px;
-        font-weight: 500;
+        padding: 16px 45px;
+        border-radius: 12px;
+        font-weight: 600;
         color: #fff;
         transition: all 0.3s ease;
         text-transform: uppercase;
@@ -50,16 +57,16 @@
 
     .btn-custom-primary:hover {
         background: #2e59d9;
-        transform: translateY(-3px);
-        box-shadow: 0 7px 20px rgba(78, 115, 223, 0.4);
+        transform: translateY(-4px);
+        box-shadow: 0 8px 25px rgba(78, 115, 223, 0.4);
     }
 
     .btn-custom-secondary {
-        background: #858796;
+        background: #6c757d;
         border: none;
-        padding: 14px 40px;
-        border-radius: 10px;
-        font-weight: 500;
+        padding: 16px 45px;
+        border-radius: 12px;
+        font-weight: 600;
         transition: all 0.3s ease;
         color: white;
         text-transform: uppercase;
@@ -67,42 +74,37 @@
     }
 
     .btn-custom-secondary:hover {
-        background: #717384;
-        transform: translateY(-3px);
-        box-shadow: 0 7px 20px rgba(133, 135, 150, 0.4);
+        background: #5a6268;
+        transform: translateY(-4px);
+        box-shadow: 0 8px 25px rgba(108, 117, 125, 0.4);
     }
 
     .page-header {
         background: linear-gradient(45deg, #4e73df, #224abe);
-        padding: 50px 0;
+        padding: 60px 0;
         border-radius: 15px;
         text-align: center;
         margin-bottom: 50px;
         color: #fff;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        animation: fadeInDown 0.5s ease-in-out;
     }
 
-    /* Phone Input Styling */
-    .iti {
-        width: 100%;
+    @keyframes fadeInDown {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
     }
-    .iti__flag {
-        background-image: url("https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/img/flags.png");
-    }
-    @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-        .iti__flag {
-            background-image: url("https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/img/flags@2x.png");
+
+    /* Responsive Tweaks */
+    @media (max-width: 768px) {
+        .btn-custom-primary, .btn-custom-secondary {
+            width: 100%;
+            text-align: center;
         }
-    }
-    .iti__selected-flag {
-        border-radius: 10px 0 0 10px;
-        background-color: #f8f9fc;
-    }
-    .phone-input-container .form-control {
-        padding-left: 90px !important;
     }
 </style>
 @endpush
+
 
 @section('content')
 <div class="container py-5">

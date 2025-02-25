@@ -70,57 +70,55 @@ class LicensesRepository extends CustomBaseRepository
      * @return Collection
      */
     public function getForDataTable($search = '', $order_by = 'id', $sort = 'asc', $trashed = false): Collection
-{
-    $query = $this->getModelInstance()->newQuery();  // Initialize the query builder
-
-    // Include soft-deleted records if $trashed is true
-    if ($trashed) {
-        $query->withTrashed();  // Include soft-deleted records
-    } else {
-        $query->withoutTrashed();  // Exclude soft-deleted records
-    }
-
-    // Join the applicants and license_types tables
-    $query->join('applicants', 'licenses.applicant_id', '=', 'applicants.id')
-          ->join('license_types', 'licenses.license_type_id', '=', 'license_types.id')
-          ->select('licenses.*', 
-                   DB::raw("CONCAT(applicants.first_name, ' ', applicants.last_name) as full_name"), 
-                   'license_types.name as license_type_name');
-
-    // Search logic: check if $search is not empty
-    if (!empty($search)) {
-        $search = '%' . strtolower($search) . '%';  // Make the search term case-insensitive and add wildcards
-        $query->where(function ($query) use ($search) {
-            $query->whereRaw('LOWER(applicants.first_name) LIKE ?', [$search])
-                  ->orWhereRaw('LOWER(applicants.last_name) LIKE ?', [$search])
-                  ->orWhereRaw('LOWER(applicants.company_name) LIKE ?', [$search])
-                  ->orWhereRaw('LOWER(license_types.name) LIKE ?', [$search])
-                  ->orWhereRaw('issue_date LIKE ?', [$search])
-                  ->orWhereRaw('expiry_date LIKE ?', [$search])
-                  ->orWhere('total_fee', 'LIKE', $search);
+    {
+        $query = $this->getModelInstance()->newQuery()->with([
+            'applicant:id,first_name,last_name,company_name',
+            'licenseType:id,name'
+        ]); // Eager load relationships
+    
+        // Include soft-deleted records if $trashed is true
+        if ($trashed) {
+            $query->withTrashed();
+        }
+    
+        // Search logic
+        if (!empty($search)) {
+            $search = '%' . strtolower($search) . '%'; // Case-insensitive search with wildcards
+            $query->where(function ($query) use ($search) {
+                $query->whereHas('applicant', function ($q) use ($search) {
+                    $q->whereRaw('LOWER(first_name) LIKE ?', [$search])
+                      ->orWhereRaw('LOWER(last_name) LIKE ?', [$search])
+                      ->orWhereRaw('LOWER(company_name) LIKE ?', [$search]);
+                })
+                ->orWhereHas('licenseType', function ($q) use ($search) {
+                    $q->whereRaw('LOWER(name) LIKE ?', [$search]);
+                })
+                ->orWhereRaw('LOWER(issue_date) LIKE ?', [$search])
+                ->orWhereRaw('LOWER(expiry_date) LIKE ?', [$search])
+                ->orWhere('total_fee', 'LIKE', $search);
+            });
+        }
+    
+        // Ensure ordering by valid columns
+        $validOrderBy = ['id', 'applicant_id', 'license_type_id', 'issue_date', 'expiry_date', 'total_fee', 'full_name', 'license_type_name', 'company_name'];
+    
+        if (in_array($order_by, $validOrderBy)) {
+            if ($order_by === 'full_name') {
+                $query->orderByRaw("(SELECT CONCAT(first_name, ' ', last_name) FROM applicants WHERE applicants.id = licenses.applicant_id) $sort");
+            } else {
+                $query->orderBy($order_by, $sort);
+            }
+        }
+    
+        return $query->get()->map(function ($license) {
+            $license->full_name = $license->applicant->first_name . ' ' . $license->applicant->last_name;
+            $license->license_type_name = $license->licenseType->name;
+            $license->company_name = $license->applicant->company_name;
+            return $license;
         });
     }
+    
 
-    // Ensure ordering by valid columns
-    $validOrderBy = ['id', 'applicant_id', 'license_type_id', 'issue_date', 'expiry_date', 'total_fee', 'full_name', 'license_type_name'];
-    if (in_array($order_by, $validOrderBy)) {
-        if ($order_by === 'full_name') {
-            // Order by full_name (concatenated first_name and last_name)
-            $query->orderByRaw("CONCAT(applicants.first_name, ' ', applicants.last_name) $sort");
-        } else {
-            $query->orderBy($order_by, $sort);  // Apply sorting
-        }
-    }
-
-    // Fetch the result and map Carbon to the date fields
-    return $query->get()->map(function ($license) {
-        // Use Carbon to format the dates
-        $license->created_at = Carbon::parse($license->created_at)->diffForHumans();
-        $license->issue_date = Carbon::parse($license->issue_date)->toFormattedDateString(); // Custom date format
-        $license->expiry_date = Carbon::parse($license->expiry_date)->toFormattedDateString(); // Custom date format
-        return $license;
-    });
-}
 
 
     /**

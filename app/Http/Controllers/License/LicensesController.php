@@ -72,11 +72,38 @@ class LicensesController extends Controller
      * @return Response
      */
     public function getDataTables(Request $request)
-    {
-        $search = $request->input('search.value', '');
-        $query = $this->licensesRepository->getForDataTable($search);
-        return DataTables::of($query)->make(true);
+{
+    $search = $request->input('search.value', '');
+    $query = $this->licensesRepository->getForDataTable($search);
+
+    // Apply filters
+    if ($request->filled('applicant_name')) {
+        $query->whereRaw("LOWER(CONCAT(applicants.first_name, ' ', applicants.last_name)) LIKE ?", ['%' . strtolower($request->input('applicant_name')) . '%']);
     }
+
+    if ($request->filled('company_name')) {
+        $query->whereRaw("LOWER(applicants.company_name) LIKE ?", ['%' . strtolower($request->input('company_name')) . '%']);
+    }
+
+    if ($request->filled('license_type')) {
+        $query->where('license_types.name', $request->input('license_type'));
+    }
+
+    if ($request->filled('issue_date')) {
+        $query->whereDate('issue_date', $request->input('issue_date'));
+    }
+
+    if ($request->filled('expiry_date')) {
+        $query->whereDate('expiry_date', $request->input('expiry_date'));
+    }
+
+    if ($request->filled('status')) {
+        $query->where('status', $request->input('status'));
+    }
+
+    return DataTables::of($query)->make(true);
+}
+
 
     /**
      * Display a listing of licenses.
@@ -84,12 +111,13 @@ class LicensesController extends Controller
      * @return Response
      */
     public function index()
-    {
-        $licenses = License::all();
+{
+    $licenses = License::all();
+    $licenseTypes = LicenseType::select('name')->distinct()->get();
 
-    // Pass the licenses to the view
-    return view('license.license.index', compact('licenses'));
-    }
+    return view('license.license.index', compact('licenses', 'licenseTypes'));
+}
+
 
     /**
      * Show the form for creating a new license.
@@ -781,6 +809,9 @@ public function downloadInvoice($id)
         'isPdfDownload' => true,
         'currencyDetails' => $currencyDetails
     ]);
+
+      // Kanakoa te email ma te PDF attachment
+   Mail::to($license->applicant->email)->send(new InvoiceEmail($license, $pdf));
     
     return $pdf->download('invoice_' . $license->invoice_number . '.pdf');
 }

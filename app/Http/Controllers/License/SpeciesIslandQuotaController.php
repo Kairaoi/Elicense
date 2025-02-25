@@ -69,35 +69,52 @@ class SpeciesIslandQuotaController extends Controller
         return view('license.speciesIslandQuota.create', compact('species', 'islands'));
     }
 
-    /**
-     * Store a newly created species island quota in storage.
-     *
-     * @param Request $request
-     * @return Response
-     */
-    public function store(Request $request)
+   /**
+ * Store a newly created species island quota in storage.
+ *
+ * @param Request $request
+ * @return Response
+ */
+public function store(Request $request)
 {
-    // Validate request data (removed remaining_quota validation)
+    // Validate request data
     $data = $request->validate([
-        'species_id'   => 'required|exists:species,id',
-        'island_id'    => 'required|exists:islands,id',
-        'island_quota' => 'required|numeric|min:0',
-        'year'         => 'required|integer',
+        'species_id'      => 'required|array',
+        'species_id.*'    => 'exists:species,id',
+        'island_id'       => 'required|array',
+        'island_id.*'     => 'exists:islands,id',
+        'island_quota'    => 'required|array',
+        'island_quota.*'  => 'numeric|min:0',
+        'year'            => 'required|integer',
     ]);
 
-    // Track the creator's ID
-    $data['created_by'] = auth()->check() ? auth()->id() : null;
+    $createdBy = auth()->check() ? auth()->id() : null;
+    $successCount = 0;
 
-    // Calculate remaining_quota based on island_quota
-    $data['remaining_quota'] = $data['island_quota'];
+    // Create quota entries for each species-island combination
+    foreach ($data['species_id'] as $speciesId) {
+        foreach ($data['island_id'] as $key => $islandId) {
+            // Get quota for this island if it exists, otherwise use the first quota
+            $quota = isset($data['island_quota'][$key]) ? $data['island_quota'][$key] : $data['island_quota'][0];
 
-    // Save the species island quota using the repository
-    $speciesIslandQuota = $this->speciesIslandQuotaRepository->create($data);
+            $quotaData = [
+                'species_id' => $speciesId,
+                'island_id' => $islandId,
+                'island_quota' => $quota,
+                'remaining_quota' => $quota, // Initial remaining quota equals island quota
+                'year' => $data['year'],
+                'created_by' => $createdBy
+            ];
+            
+            $this->speciesIslandQuotaRepository->create($quotaData);
+            $successCount++;
+        }
+    }
 
     // Redirect with success message
-    return redirect()->route('species-island-quotas.quota.index')->with('success', 'Species Island Quota created successfully.');
+    return redirect()->route('species-island-quotas.quota.index')
+        ->with('success', $successCount . ' Species Island Quota entries created successfully.');
 }
-
 
     /**
      * Display the specified species island quota.

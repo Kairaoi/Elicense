@@ -7,12 +7,51 @@
         <a href="{{ route('license.licenses.create2') }}" class="btn btn-secondary elegant-back-btn">Add New License</a>
     </div>
 
+    <!-- Filter Form -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form id="filterForm" class="row g-3">
+                <div class="col-md-3">
+                    <label for="licenseType" class="form-label">License Type</label>
+                    <select id="licenseType" name="license_type" class="form-control">
+                        <option value="">All</option>
+                        @foreach($licenseTypes as $type)
+                            <option value="{{ $type->id }}">{{ $type->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="status" class="form-label">Status</label>
+                    <select id="status" name="status" class="form-control">
+                        <option value="">All</option>
+                        <option value="pending">Pending</option>
+                        <option value="reviewed">Reviewed</option>
+                        <option value="license_issued">Issued</option>
+                        <option value="license_revoked">Revoked</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="applicant" class="form-label">Applicant Name</label>
+                    <input type="text" id="applicant" name="applicant" class="form-control" placeholder="Search applicant">
+                </div>
+
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">Filter</button>
+                    <button type="button" id="resetFilter" class="btn btn-secondary">Reset</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Licenses Table -->
     <table id="licensesTable" class="table table-striped">
         <thead>
             <tr>
                 <th>ID</th>
                 <th>Applicant Name</th>
-                <th>License Type Name</th>
+                <th>License Type</th>
                 <th>Total Fee</th>
                 <th>Status</th>
                 <th>Actions</th>
@@ -21,33 +60,6 @@
     </table>
 </div>
 @endsection
-
-@push('styles')
-<style>
-    .container { padding-top: 20px; }
-    .elegant-heading { margin-bottom: 0; }
-    .elegant-back-btn { margin-left: 10px; }
-    
-    /* Status badge styles */
-    .status-badge {
-        padding: 0.25rem 0.5rem;
-        border-radius: 0.25rem;
-        font-size: 0.875rem;
-        font-weight: 600;
-    }
-
-    .status-pending { background-color: #ffeeba; color: #856404; }
-    .status-reviewed { background-color: #b8daff; color: #004085; }
-    .status-issued { background-color: #c3e6cb; color: #155724; }
-    .status-revoked { background-color: #f5c6cb; color: #721c24; }
-
-    /* Action button styles */
-    .action-btn {
-        padding: 0.25rem 0.5rem;
-        font-size: 0.875rem;
-    }
-</style>
-@endpush
 
 @push('scripts')
 <script>
@@ -61,69 +73,65 @@ $(document).ready(function() {
         'downloadRevoked': "{{ route('license.licenses.download-revoked', ':id') }}"
     };
 
-    function route(name, id) {
-        return routes[name].replace(':id', id);
-    }
-
     var table = $('#licensesTable').DataTable({
         processing: true,
         serverSide: true,
         ajax: {
             url: "{{ route('license.licenses.datatables') }}",
             type: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            data: function(d) {
+                d.license_type = $('#licenseType').val();
+                d.status = $('#status').val();
+                d.applicant = $('#applicant').val();
             }
         },
         columns: [
             { data: 'id' },
             { data: 'full_name' },
             { data: 'license_type_name' },
-            { 
-                data: 'total_fee',
-                render: function(data, type, row) {
-                    let currencySymbol = 'AUD';
-                    if (row.license_type_name === 'Export License for Seacucumber') {
-                        currencySymbol = 'US';
-                    }
-                    return `${currencySymbol} ${parseFloat(data).toLocaleString(undefined, { 
-                        minimumFractionDigits: 2, 
-                        maximumFractionDigits: 2 
-                    })}`;
+            { data: 'total_fee', render: function(data, type, row) {
+                let currencySymbol = 'AUD';
+                if (row.license_type_name === 'Export License for Seacucumber' || row.license_type_name === 'Export License for Lobster') {
+                    currencySymbol = 'US';
                 }
-            },
-            {
-                data: 'status',
-                render: function(data) {
-                    let formattedStatus = data.replace('_', ' ').toLowerCase().split(' ')
-                        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                        .join(' ');
+                return `${currencySymbol} ${parseFloat(data).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            }},
+            { data: 'status', render: function(data) {
+                let formattedStatus = data.replace('_', ' ').toLowerCase().split(' ')
+                    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                    .join(' ');
 
-                    let statusClass = 'status-' + data.toLowerCase().replace(/\s/g, '-');
-                    return `<span class="status-badge ${statusClass}">${formattedStatus}</span>`;
-                }
-            },
-            {
-                data: null,
-                orderable: false,
-                render: function(data, type, row) {
-                    return `
-                        <div class="dropdown">
-                            <button class="btn btn-secondary btn-sm action-btn dropdown-toggle" type="button" 
-                                    data-bs-toggle="dropdown" aria-expanded="false">
-                                Actions
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                ${getActionButtons(row)}
-                            </ul>
-                        </div>
-                    `;
-                }
-            }
+                let statusClass = 'status-' + data.toLowerCase().replace(/\s/g, '-');
+                return `<span class="status-badge ${statusClass}">${formattedStatus}</span>`;
+            }},
+            { data: null, orderable: false, render: function(data, type, row) {
+                return `<div class="dropdown">
+                    <button class="btn btn-secondary btn-sm action-btn dropdown-toggle" type="button" 
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                        Actions
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        ${getActionButtons(row)}
+                    </ul>
+                </div>`;
+            }}
         ],
         pageLength: 10,
         responsive: true,
         order: [[0, 'desc']]
+    });
+
+    // Filter functionality
+    $('#filterForm').submit(function(e) {
+        e.preventDefault();
+        table.ajax.reload();
+    });
+
+    // Reset filter
+    $('#resetFilter').click(function() {
+        $('#licenseType, #status, #applicant').val('');
+        table.ajax.reload();
     });
 
     function getActionButtons(row) {
@@ -131,20 +139,20 @@ $(document).ready(function() {
 
         if (row.status.toLowerCase() === 'pending') {
             buttons += `
-                <li><a class="dropdown-item" href="${route('edit', row.id)}">
+                <li><a class="dropdown-item" href="${routes.edit.replace(':id', row.id)}">
                     <i class="fas fa-edit"></i> Edit
                 </a></li>
-                <li><a class="dropdown-item" href="${route('invoice', row.id)}">
+                <li><a class="dropdown-item" href="${routes.invoice.replace(':id', row.id)}">
                     <i class="fas fa-file-invoice"></i> Invoice
                 </a></li>
             `;
         } 
         else if (row.status.toLowerCase() === 'reviewed') {
             buttons += `
-                <li><a class="dropdown-item" href="${route('edit', row.id)}">
+                <li><a class="dropdown-item" href="${routes.edit.replace(':id', row.id)}">
                     <i class="fas fa-edit"></i> Edit
                 </a></li>
-                <li><a class="dropdown-item" href="${route('showIssueForm', row.id)}" 
+                <li><a class="dropdown-item" href="${routes.showIssueForm.replace(':id', row.id)}" 
                     onclick="return confirmAction('Are you sure you want to issue this license?')">
                     <i class="fas fa-check-circle"></i> Issue License
                 </a></li>
@@ -152,7 +160,7 @@ $(document).ready(function() {
         }
         else if (row.status.toLowerCase() === 'license_issued') {
             buttons += `
-                <li><a class="dropdown-item" href="${route('download', row.id)}">
+                <li><a class="dropdown-item" href="${routes.download.replace(':id', row.id)}">
                     <i class="fas fa-download"></i> Download
                 </a></li>
                 <li><a class="dropdown-item" href="#" onclick="revokeLicense(${row.id}); return false;">
@@ -162,7 +170,7 @@ $(document).ready(function() {
         }
         else if (row.status.toLowerCase() === 'license_revoked') {
             buttons += `
-                <li><a class="dropdown-item" href="${route('downloadRevoked', row.id)}">
+                <li><a class="dropdown-item" href="${routes.downloadRevoked.replace(':id', row.id)}">
                     <i class="fas fa-download"></i> Download Revoked License
                 </a></li>
             `;
@@ -181,7 +189,7 @@ $(document).ready(function() {
 
         if (confirmAction('Are you sure you want to revoke this license? This action cannot be undone.')) {
             $.ajax({
-                url: route('revoke', licenseId),
+                url: routes.revoke.replace(':id', licenseId),
                 type: 'PUT',
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
