@@ -64,15 +64,11 @@
     render: function(data, type, row) {
         return `
             <div class="btn-group" role="group">
-                <a href="{{ url('species-island-quotas/quota') }}/${row.id}/edit" class="btn btn-primary btn-sm">
-                    <i class="fas fa-edit"></i> Edit
-                </a>
+               
                 <a href="{{ url('species-island-quotas/quota') }}/${row.id}" class="btn btn-info btn-sm">
                     <i class="fas fa-eye"></i> View
                 </a>
-                <button class="btn btn-danger btn-sm delete-quota" data-id="${row.id}">
-                    <i class="fas fa-trash"></i> Delete
-                </button>
+               
             </div>
         `;
     }

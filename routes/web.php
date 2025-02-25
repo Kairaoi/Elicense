@@ -254,9 +254,13 @@ Route::group([
 ], function () {
     
     Route::match(['get', 'post'], 'quota/datatables', [\App\Http\Controllers\License\SpeciesIslandQuotaController::class, 'getDataTables'])->name('quota.datatables');
-    Route::resource('/quota', \App\Http\Controllers\License\SpeciesIslandQuotaController::class);
     
+    // Define the resource routes except for 'edit', 'update', and 'destroy'
+    Route::resource('quota', \App\Http\Controllers\License\SpeciesIslandQuotaController::class)
+        ->except(['edit', 'update', 'destroy']);
 });
+
+
 
 Route::group([
     'as' => 'pfps.',

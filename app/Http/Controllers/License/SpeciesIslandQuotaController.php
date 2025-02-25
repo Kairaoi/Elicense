@@ -139,18 +139,18 @@ public function store(Request $request)
      * @param int $id
      * @return Response
      */
-    public function edit($id)
-    {
-        $speciesIslandQuota = $this->speciesIslandQuotaRepository->getById($id);
-        $species = $this->speciesRepository->pluck();
-        $islands = $this->islandRepository->pluck();
+    // public function edit($id)
+    // {
+    //     $speciesIslandQuota = $this->speciesIslandQuotaRepository->getById($id);
+    //     $species = $this->speciesRepository->pluck();
+    //     $islands = $this->islandRepository->pluck();
 
-        if (!$speciesIslandQuota) {
-            return redirect()->route('species-island-quotas.quota.index')->with('error', 'Species Island Quota not found.');
-        }
+    //     if (!$speciesIslandQuota) {
+    //         return redirect()->route('species-island-quotas.quota.index')->with('error', 'Species Island Quota not found.');
+    //     }
 
-        return view('license.speciesIslandQuota.edit', compact('speciesIslandQuota', 'species', 'islands'));
-    }
+    //     return view('license.speciesIslandQuota.edit', compact('speciesIslandQuota', 'species', 'islands'));
+    // }
 
     /**
      * Update the specified species island quota in storage.
@@ -159,29 +159,29 @@ public function store(Request $request)
      * @param int $id
      * @return Response
      */
-    public function update(Request $request, $id)
-    {
-        // Validate request data
-        $data = $request->validate([
-            'species_id'      => 'required|exists:species,id',
-            'island_id'       => 'required|exists:islands,id',
-            'island_quota'    => 'required|numeric|min:0',
-            'remaining_quota' => 'required|numeric|min:0',
-            'year'            => 'required|integer',
-        ]);
+    // public function update(Request $request, $id)
+    // {
+    //     // Validate request data
+    //     $data = $request->validate([
+    //         'species_id'      => 'required|exists:species,id',
+    //         'island_id'       => 'required|exists:islands,id',
+    //         'island_quota'    => 'required|numeric|min:0',
+    //         'remaining_quota' => 'required|numeric|min:0',
+    //         'year'            => 'required|integer',
+    //     ]);
 
-        // Track the updater's ID
-        $data['updated_by'] = auth()->id();
+    //     // Track the updater's ID
+    //     $data['updated_by'] = auth()->id();
 
-        // Attempt to update the species island quota record
-        $updated = $this->speciesIslandQuotaRepository->update($id, $data);
+    //     // Attempt to update the species island quota record
+    //     $updated = $this->speciesIslandQuotaRepository->update($id, $data);
 
-        if (!$updated) {
-            return redirect()->route('license.speciesIslandQuota.index')->with('error', 'Failed to update species island quota.');
-        }
+    //     if (!$updated) {
+    //         return redirect()->route('license.speciesIslandQuota.index')->with('error', 'Failed to update species island quota.');
+    //     }
 
-        return redirect()->route('species-island-quotas.quota.index')->with('success', 'Species Island Quota updated successfully.');
-    }
+    //     return redirect()->route('species-island-quotas.quota.index')->with('success', 'Species Island Quota updated successfully.');
+    // }
 
     /**
      * Remove the specified species island quota from storage.
@@ -189,14 +189,14 @@ public function store(Request $request)
      * @param int $id
      * @return Response
      */
-    public function destroy($id)
-    {
-        $deleted = $this->speciesIslandQuotaRepository->deleteById($id);
+    // public function destroy($id)
+    // {
+    //     $deleted = $this->speciesIslandQuotaRepository->deleteById($id);
 
-        if (!$deleted) {
-            return response()->json(['message' => 'Species Island Quota not found or failed to delete'], Response::HTTP_NOT_FOUND);
-        }
+    //     if (!$deleted) {
+    //         return response()->json(['message' => 'Species Island Quota not found or failed to delete'], Response::HTTP_NOT_FOUND);
+    //     }
 
-        return response()->json(['message' => 'Species Island Quota deleted successfully']);
-    }
+    //     return response()->json(['message' => 'Species Island Quota deleted successfully']);
+    // }
 }
