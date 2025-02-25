@@ -800,21 +800,32 @@ public function downloadInvoice($id)
     // Ensure we have the correct currency details
     $currencyDetails = $this->getCurrencyDetails($license->licenseType->name);
     
-    // Add logging to debug currency details
-    Log::info('Download Invoice - License Type: ' . $license->licenseType->name);
-    Log::info('Download Invoice - Currency Details: ' . json_encode($currencyDetails));
+    // Debug file path
+    $imagePath = public_path('images/logos.png');
+    Log::info("Checking image path: " . $imagePath);
+
+    // Add image handling
+    $logoBase64 = '';
+    if (file_exists($imagePath)) {
+        $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($imagePath));
+        Log::info("Image successfully loaded: " . substr($logoBase64, 0, 50) . '...'); // Debug only first 50 chars
+    } else {
+        Log::error("LOGO NOT FOUND: " . $imagePath);
+    }
 
     $pdf = PDF::loadView('license.license.invoice', [
         'license' => $license, 
         'isPdfDownload' => true,
-        'currencyDetails' => $currencyDetails
+        'currencyDetails' => $currencyDetails,
+        'logoBase64' => $logoBase64
     ]);
 
-      // Kanakoa te email ma te PDF attachment
-   Mail::to($license->applicant->email)->send(new InvoiceEmail($license, $pdf));
+    // Send email with PDF attachment
+    Mail::to($license->applicant->email)->send(new InvoiceEmail($license, $pdf));
     
     return $pdf->download('invoice_' . $license->invoice_number . '.pdf');
 }
+
 
 public function issueLicense(Request $request, License $license)
 {

@@ -1,257 +1,167 @@
 @extends('layouts.app')
 
-@section('title', 'Create New Agent')
-
-@section('styles')
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<style>
-    .form-group label {
-        font-weight: 600;
-    }
-    .card-header {
-        background-color: #f8f9fa;
-        border-bottom: 1px solid #dee2e6;
-    }
-    .card-title {
-        margin-bottom: 0;
-        font-size: 1.25rem;
-    }
-    .btn-primary {
-        background-color: #007bff;
-        border-color: #007bff;
-    }
-    .btn-secondary {
-        background-color: #6c757d;
-        border-color: #6c757d;
-    }
-</style>
-@endsection
-
 @section('content')
-<div class="container-fluid py-4">
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header">
-                    <h4 class="card-title">Create New Agent</h4>
+<div class="container">
+    <h2 class="mb-4">License Application</h2>
+
+    <form method="POST" action="{{ route('applicantdetails.applicantdetails.store') }}">
+        @csrf
+        <!-- Applicant Information -->
+        <div class="mb-4">
+            <label class="form-label">Applicant</label>
+            @if(!empty($applicants))
+                @php
+                    // Get the single applicant from the array (since we only have one now)
+                    $applicantId = array_key_first($applicants);
+                    $applicantName = reset($applicants);
+                @endphp
+                <p>{{ $applicantName }}</p>
+                <!-- Hidden input to pass the applicant ID -->
+                <input type="hidden" name="applicant_id" value="{{ $applicantId }}">
+            @else
+                <p class="text-danger">No applicant profile found. Please create a profile first.</p>
+            @endif
+        </div>
+
+        <!-- License Type Selection -->
+        <div class="mb-4">
+            <label for="license_type_id" class="form-label">License Type</label>
+            <select name="license_type_id" id="license_type_id" class="form-select" required {{ empty($applicants) ? 'disabled' : '' }}>
+                <option value="">Select License Type</option>
+                @foreach ($licenseTypes as $id => $licenseType)
+                    <option value="{{ $id }}" {{ old('license_type_id') == $id ? 'selected' : '' }}>
+                        {{ $licenseType }}
+                    </option>
+                @endforeach
+            </select>
+            @error('license_type_id')
+                <div class="text-danger">{{ $message }}</div>
+            @enderror
+        </div>
+
+        <!-- Island Selection -->
+        <div class="mb-4">
+            <label class="form-label">Select Islands</label>
+            <div class="row">
+                @foreach ($islands as $id => $name)
+                <div class="col-md-4 mb-2">
+                    <div class="form-check">
+                        <input class="form-check-input island-checkbox" type="checkbox" 
+                               name="selected_islands[]" value="{{ $id }}" 
+                               id="island_{{ $id }}" {{ empty($applicants) ? 'disabled' : '' }}>
+                        <label class="form-check-label" for="island_{{ $id }}">
+                            {{ $name }}
+                        </label>
+                    </div>
                 </div>
-
-                <div class="card-body">
-                    @if ($errors->any())
-                        <div class="alert alert-danger">
-                            <ul>
-                                @foreach ($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
-
-                    <form method="POST" action="{{ route('license.agents.store') }}" id="agent-form">
-                        @csrf
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="first_name">First Name <span class="text-danger">*</span></label>
-                                    <input type="text" 
-                                        class="form-control @error('first_name') is-invalid @enderror" 
-                                        id="first_name" 
-                                        name="first_name" 
-                                        value="{{ old('first_name') }}" 
-                                        required>
-                                    @error('first_name')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="last_name">Last Name <span class="text-danger">*</span></label>
-                                    <input type="text" 
-                                        class="form-control @error('last_name') is-invalid @enderror" 
-                                        id="last_name" 
-                                        name="last_name" 
-                                        value="{{ old('last_name') }}" 
-                                        required>
-                                    @error('last_name')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row mt-3">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="phone_number">Phone Number <span class="text-danger">*</span></label>
-                                    <input type="text" 
-                                        class="form-control @error('phone_number') is-invalid @enderror" 
-                                        id="phone_number" 
-                                        name="phone_number" 
-                                        value="{{ old('phone_number') }}" 
-                                        required>
-                                    @error('phone_number')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="email">Email <span class="text-danger">*</span></label>
-                                    <input type="email" 
-                                        class="form-control @error('email') is-invalid @enderror" 
-                                        id="email" 
-                                        name="email" 
-                                        value="{{ old('email') }}" 
-                                        required>
-                                    @error('email')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row mt-3">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="applicant_id">Applicant <span class="text-danger">*</span></label>
-                                    <select class="form-control @error('applicant_id') is-invalid @enderror" 
-                                        id="applicant_id" 
-                                        name="applicant_id" 
-                                        required>
-                                        <option value="">Select Applicant</option>
-                                        @foreach($applicants as $id => $name)
-                                            <option value="{{ $id }}" {{ old('applicant_id') == $id ? 'selected' : '' }}>{{ $name }}</option>
-                                        @endforeach
-                                    </select>
-                                    @error('applicant_id')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="status">Status <span class="text-danger">*</span></label>
-                                    <select class="form-control @error('status') is-invalid @enderror" 
-                                        id="status" 
-                                        name="status" 
-                                        required>
-                                        <option value="active" {{ old('status') == 'active' ? 'selected' : '' }}>Active</option>
-                                        <option value="inactive" {{ old('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
-                                    </select>
-                                    @error('status')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row mt-3">
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label for="islands">Islands <span class="text-danger">*</span></label>
-                                    <select class="form-control select2 @error('islands') is-invalid @enderror" 
-                                        id="islands" 
-                                        name="islands[]" 
-                                        multiple 
-                                        required>
-                                        @foreach($islands as $id => $name)
-                                            <option value="{{ $id }}" {{ collect(old('islands'))->contains($id) ? 'selected' : '' }}>{{ $name }}</option>
-                                        @endforeach
-                                    </select>
-                                    @error('islands')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row mt-3">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="start_date">Start Date <span class="text-danger">*</span></label>
-                                    <input type="date" 
-                                        class="form-control @error('start_date') is-invalid @enderror" 
-                                        id="start_date" 
-                                        name="start_date" 
-                                        value="{{ old('start_date') }}" 
-                                        required>
-                                    @error('start_date')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="end_date">End Date</label>
-                                    <input type="date" 
-                                        class="form-control @error('end_date') is-invalid @enderror" 
-                                        id="end_date" 
-                                        name="end_date" 
-                                        value="{{ old('end_date') }}">
-                                    @error('end_date')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row mt-3">
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label for="notes">Notes</label>
-                                    <textarea class="form-control @error('notes') is-invalid @enderror" 
-                                        id="notes" 
-                                        name="notes" 
-                                        rows="3">{{ old('notes') }}</textarea>
-                                    @error('notes')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row mt-4">
-                            <div class="col-md-12 d-flex justify-content-between">
-                                <button type="submit" class="btn btn-primary">Create Agent</button>
-                                <a href="{{ route('license.agents.index') }}" class="btn btn-secondary">Cancel</a>
-                            </div>
-                        </div>
-                    </form>
-                </div>
+                @endforeach
             </div>
         </div>
-    </div>
+
+        <!-- Species and Quotas Section -->
+        <div id="species-quotas-container" class="mt-4" style="display: none;">
+            <!-- This will be populated dynamically -->
+        </div>
+
+        <!-- Hidden Inputs for Totals -->
+        <input type="hidden" name="subtotal" id="subtotal-input">
+        <input type="hidden" name="vat_amount" id="vat-input">
+        <input type="hidden" name="total_amount" id="total-input">
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn btn-primary mt-4" {{ empty($applicants) ? 'disabled' : '' }}>Submit License Application</button>
+    </form>
 </div>
 @endsection
 
-@section('scripts')
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+@push('scripts')
 <script>
-    $(document).ready(function() {
-        $('.select2').select2({
-            placeholder: 'Select Islands',
-            allowClear: true
+document.addEventListener('DOMContentLoaded', function() {
+    const licenseTypeSelect = document.getElementById('license_type_id');
+    const islandCheckboxes = document.querySelectorAll('.island-checkbox');
+    const speciesQuotasContainer = document.getElementById('species-quotas-container');
+    
+    // Data from the backend
+    const availableQuotas = @json($availableQuotas);
+    const speciesByLicenseType = @json($speciesByLicenseType);
+
+    // Check if availableQuotas has data
+    if (Object.keys(availableQuotas).length === 0) {
+        // If no quotas available, show message
+        speciesQuotasContainer.innerHTML = '<div class="alert alert-warning">No quotas available at this time.</div>';
+        speciesQuotasContainer.style.display = 'block';
+        
+        // Optionally disable form elements
+        licenseTypeSelect.disabled = true;
+        islandCheckboxes.forEach(checkbox => checkbox.disabled = true);
+        return;
+    }
+
+    function updateSpeciesQuotas() {
+        const selectedLicenseType = licenseTypeSelect.value;
+        const selectedIslands = Array.from(document.querySelectorAll('.island-checkbox:checked'))
+            .map(cb => cb.value);
+
+        if (!selectedLicenseType || selectedIslands.length === 0) {
+            speciesQuotasContainer.style.display = 'none';
+            return;
+        }
+
+        speciesQuotasContainer.style.display = 'block';
+        let html = '<h4>Species and Quotas</h4>';
+
+        const species = speciesByLicenseType[selectedLicenseType] || [];
+
+        species.forEach(species => {
+            html += `
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5 class="mb-0">${species.name}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Island</th>
+                                        <th>Available Quota (kg)</th>
+                                        <th>Requested Quota (kg)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>`;
+            
+            selectedIslands.forEach(islandId => {
+                const availableQuota = availableQuotas[species.id]?.[islandId] || 0;
+                html += `
+                    <tr>
+                        <td>${document.getElementById('island_' + islandId).nextElementSibling.textContent}</td>
+                        <td>${availableQuota}</td>
+                        <td>
+                            <input type="number" 
+                                   name="quotas[${species.id}][${islandId}]" 
+                                   class="form-control quota-input" 
+                                   min="0" 
+                                   max="${availableQuota}"
+                                   step="0.01">
+                        </td>
+                    </tr>`;
+            });
+
+            html += `
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>`;
         });
 
-        $('#agent-form').on('submit', function(e) {
-            if (!$('#islands').val().length) {
-                e.preventDefault();
-                alert('Please select at least one island');
-                return false;
-            }
-        });
+        speciesQuotasContainer.innerHTML = html;
+    }
 
-        $('#end_date').on('change', function() {
-            const startDate = $('#start_date').val();
-            const endDate = $(this).val();
-
-            if (startDate && endDate && endDate < startDate) {
-                alert('End date must be after start date');
-                $(this).val('');
-            }
-        });
+    licenseTypeSelect.addEventListener('change', updateSpeciesQuotas);
+    islandCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updateSpeciesQuotas);
     });
+});
 </script>
-@endsection
+@endpush

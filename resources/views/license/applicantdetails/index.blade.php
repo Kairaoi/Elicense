@@ -4,6 +4,7 @@
 <div class="container" style="margin-top: 100px;">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="elegant-heading">Applicant Licenses</h1>
+        <a href="{{ route('applicantdetails.applicantdetails.create') }}" class="btn btn-secondary elegant-back-btn">Add New License</a>
     </div>
 
     <table id="applicantLicensesTable" class="table table-striped">

@@ -13,7 +13,7 @@ class DatabaseSeeder extends Seeder
             FisheryLicensingSystemSeeder::class,
             ReportSeeder::class,
             CountrySeeder::class,
-            // SpeciesIslandQuotaSeeder::class,
+            SpeciesIslandQuotaSeeder::class,
             OrganizationsTableSeeder::class,
             LodgeSeeder::class,
             PermitCategoriesSeeder::class,
@@ -27,7 +27,7 @@ class DatabaseSeeder extends Seeder
             PermitSeeder::class,           // This should come AFTER InvoiceSeeder
             EquipmentRentalSeeder::class,
             AnnualTripFeesTableSeeder::class,
-            // SpeciesTrackingSeeder::class,
+            SpeciesTrackingSeeder::class,
 
         ]);
     }
