@@ -142,7 +142,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                    class="form-control quota-input" 
                                    min="0" 
                                    max="${availableQuota}"
-                                   step="0.01">
+                                   step="0.01"
+                                    value="0">
                         </td>
                     </tr>`;
             });

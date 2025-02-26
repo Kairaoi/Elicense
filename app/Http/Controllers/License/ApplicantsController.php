@@ -66,9 +66,14 @@ class ApplicantsController extends Controller
      * @return Response
      */
     public function index()
-    {
-        return view('license.applicant.index');
-    }
+{
+    $pendingCount = \DB::table('licenses')
+        ->where('status', 'pending')
+        ->count();
+
+    return view('license.applicant.index', compact('pendingCount'));
+}
+
 
     /**
      * Show the form for creating a new license applicant.
@@ -467,5 +472,24 @@ public function downloadPDF($id)
     // Download PDF with custom filename
     return $pdf->download('applicant-'.$applicant->id.'-details.pdf');
 }
+
+public function getApplicantsData(Request $request)
+{
+    $applicants = Applicant::query();
+
+    // Count pending applications
+    $pendingCount = License::where('status', 'pending')->count();
+
+    return DataTables::of($applicants)
+        ->addColumn('full_name', function ($applicant) {
+            return $applicant->first_name . ' ' . $applicant->last_name;
+        })
+        ->addColumn('actions', function ($applicant) {
+            return view('partials.applicant_actions', compact('applicant'))->render();
+        })
+        ->with(['pendingCount' => $pendingCount]) // Include pending count in the response
+        ->make(true);
+}
+
 
 }

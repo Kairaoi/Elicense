@@ -70,53 +70,62 @@ class LicensesRepository extends CustomBaseRepository
      * @return Collection
      */
     public function getForDataTable($search = '', $order_by = 'id', $sort = 'asc', $trashed = false): Collection
-    {
-        $query = $this->getModelInstance()->newQuery()->with([
-            'applicant:id,first_name,last_name,company_name',
-            'licenseType:id,name'
-        ]); // Eager load relationships
-    
-        // Include soft-deleted records if $trashed is true
-        if ($trashed) {
-            $query->withTrashed();
-        }
-    
-        // Search logic
-        if (!empty($search)) {
-            $search = '%' . strtolower($search) . '%'; // Case-insensitive search with wildcards
-            $query->where(function ($query) use ($search) {
-                $query->whereHas('applicant', function ($q) use ($search) {
-                    $q->whereRaw('LOWER(first_name) LIKE ?', [$search])
-                      ->orWhereRaw('LOWER(last_name) LIKE ?', [$search])
-                      ->orWhereRaw('LOWER(company_name) LIKE ?', [$search]);
-                })
-                ->orWhereHas('licenseType', function ($q) use ($search) {
-                    $q->whereRaw('LOWER(name) LIKE ?', [$search]);
-                })
-                ->orWhereRaw('LOWER(issue_date) LIKE ?', [$search])
-                ->orWhereRaw('LOWER(expiry_date) LIKE ?', [$search])
-                ->orWhere('total_fee', 'LIKE', $search);
-            });
-        }
-    
-        // Ensure ordering by valid columns
-        $validOrderBy = ['id', 'applicant_id', 'license_type_id', 'issue_date', 'expiry_date', 'total_fee', 'full_name', 'license_type_name', 'company_name'];
-    
-        if (in_array($order_by, $validOrderBy)) {
-            if ($order_by === 'full_name') {
-                $query->orderByRaw("(SELECT CONCAT(first_name, ' ', last_name) FROM applicants WHERE applicants.id = licenses.applicant_id) $sort");
-            } else {
-                $query->orderBy($order_by, $sort);
-            }
-        }
-    
-        return $query->get()->map(function ($license) {
-            $license->full_name = $license->applicant->first_name . ' ' . $license->applicant->last_name;
-            $license->license_type_name = $license->licenseType->name;
-            $license->company_name = $license->applicant->company_name;
-            return $license;
+{
+    $query = $this->getModelInstance()->newQuery()->with([
+        'applicant:id,first_name,last_name,company_name',
+        'licenseType:id,name'
+    ]); // Eager load relationships
+
+    // Include soft-deleted records if $trashed is true
+    if ($trashed) {
+        $query->withTrashed();
+    }
+
+    // Search logic
+    if (!empty($search)) {
+        $search = '%' . strtolower($search) . '%'; // Case-insensitive search with wildcards
+        $query->where(function ($query) use ($search) {
+            $query->whereHas('applicant', function ($q) use ($search) {
+                $q->whereRaw('LOWER(first_name) LIKE ?', [$search])
+                  ->orWhereRaw('LOWER(last_name) LIKE ?', [$search])
+                  ->orWhereRaw('LOWER(company_name) LIKE ?', [$search]);
+            })
+            ->orWhereHas('licenseType', function ($q) use ($search) {
+                $q->whereRaw('LOWER(name) LIKE ?', [$search]);
+            })
+            ->orWhereRaw('LOWER(issue_date) LIKE ?', [$search])
+            ->orWhereRaw('LOWER(expiry_date) LIKE ?', [$search])
+            ->orWhere('total_fee', 'LIKE', $search)
+            ->orWhereRaw('LOWER(status) LIKE ?', [$search]); // Added status search
         });
     }
+
+    // Ensure ordering by valid columns
+    $validOrderBy = ['id', 'applicant_id', 'license_type_id', 'issue_date', 'expiry_date', 'total_fee', 'full_name', 'license_type_name', 'company_name', 'status']; // Added 'status' to valid order by
+
+    if (in_array($order_by, $validOrderBy)) {
+        if ($order_by === 'full_name') {
+            $query->leftJoin('applicants', 'applicants.id', '=', 'licenses.applicant_id')
+                  ->orderByRaw("CONCAT(applicants.first_name, ' ', applicants.last_name) $sort");
+        } else if ($order_by === 'license_type_name') {
+            $query->leftJoin('license_types', 'license_types.id', '=', 'licenses.license_type_id')
+                  ->orderBy('license_types.name', $sort);
+        } else {
+            $query->orderBy($order_by, $sort);
+        }
+    }
+
+    // Pagination if necessary (optional improvement)
+    // $query->paginate(10);
+
+    return $query->get()->map(function ($license) {
+        $license->full_name = $license->applicant->first_name . ' ' . $license->applicant->last_name;
+        $license->license_type_name = $license->licenseType->name;
+        $license->company_name = $license->applicant->company_name;
+        return $license;
+    });
+}
+
     
 
 

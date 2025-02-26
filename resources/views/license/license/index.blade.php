@@ -33,7 +33,7 @@
                 </div>
 
                 <div class="col-md-3">
-                    <label for="applicant" class="form-label">Applicant Name</label>
+                    <label for="applicant" class="form-label">Applicant Name | Company Name</label>
                     <input type="text" id="applicant" name="applicant" class="form-control" placeholder="Search applicant">
                 </div>
 
@@ -70,7 +70,7 @@ $(document).ready(function() {
         'showIssueForm': "{{ route('license.licenses.showIssueForm', ':id') }}",
         'download': "{{ route('license.licenses.download', ':id') }}",
         'revoke': "{{ route('license.licenses.revoke', ':id') }}",
-        'downloadRevoked': "{{ route('license.licenses.download-revoked', ':id') }}"
+        'downloadRevoked': "{{ route('license.licenses.download-revoked', ':id') }}",
     };
 
     var table = $('#licensesTable').DataTable({
@@ -81,42 +81,43 @@ $(document).ready(function() {
             type: 'POST',
             headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
             data: function(d) {
+                // Send additional filter parameters
                 d.license_type = $('#licenseType').val();
                 d.status = $('#status').val();
                 d.applicant = $('#applicant').val();
             }
         },
         columns: [
-            { data: 'id' },
-            { data: 'full_name' },
-            { data: 'license_type_name' },
-            { data: 'total_fee', render: function(data, type, row) {
-                let currencySymbol = 'AUD';
-                if (row.license_type_name === 'Export License for Seacucumber' || row.license_type_name === 'Export License for Lobster') {
-                    currencySymbol = 'US';
-                }
-                return `${currencySymbol} ${parseFloat(data).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-            }},
-            { data: 'status', render: function(data) {
-                let formattedStatus = data.replace('_', ' ').toLowerCase().split(' ')
-                    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                    .join(' ');
+    { data: 'id' },
+    { data: 'applicant_name' }, // Changed from full_name to applicant_name
+    { data: 'license_type_name' },
+    { data: 'total_fee', render: function(data, type, row) {
+        let currencySymbol = 'AUD$';
+        if (row.license_type_name === 'Export License for Seacucumber' || row.license_type_name === 'Export License for Lobster') {
+            currencySymbol = 'USD$';
+        }
+        return `${currencySymbol}${parseFloat(data).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }},
+    { data: 'status', render: function(data) {
+        let formattedStatus = data.replace('_', ' ').toLowerCase().split(' ')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
 
-                let statusClass = 'status-' + data.toLowerCase().replace(/\s/g, '-');
-                return `<span class="status-badge ${statusClass}">${formattedStatus}</span>`;
-            }},
-            { data: null, orderable: false, render: function(data, type, row) {
-                return `<div class="dropdown">
-                    <button class="btn btn-secondary btn-sm action-btn dropdown-toggle" type="button" 
-                            data-bs-toggle="dropdown" aria-expanded="false">
-                        Actions
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        ${getActionButtons(row)}
-                    </ul>
-                </div>`;
-            }}
-        ],
+        let statusClass = 'status-' + data.toLowerCase().replace(/\s/g, '-');
+        return `<span class="status-badge ${statusClass}">${formattedStatus}</span>`;
+    }},
+    { data: null, orderable: false, render: function(data, type, row) {
+        return `<div class="dropdown">
+            <button class="btn btn-secondary btn-sm action-btn dropdown-toggle" type="button" 
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                Actions
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                ${getActionButtons(row)}
+            </ul>
+        </div>`;
+    }}
+],
         pageLength: 10,
         responsive: true,
         order: [[0, 'desc']]
@@ -124,14 +125,14 @@ $(document).ready(function() {
 
     // Filter functionality
     $('#filterForm').submit(function(e) {
-        e.preventDefault();
-        table.ajax.reload();
+        e.preventDefault(); // Prevent default form submission
+        table.ajax.reload(); // Reload table with the updated filter data
     });
 
     // Reset filter
     $('#resetFilter').click(function() {
-        $('#licenseType, #status, #applicant').val('');
-        table.ajax.reload();
+        $('#licenseType, #status, #applicant').val(''); // Reset filter fields
+        table.ajax.reload(); // Reload table without filters
     });
 
     function getActionButtons(row) {
@@ -215,5 +216,6 @@ $(document).ready(function() {
         }
     }
 });
+
 </script>
 @endpush

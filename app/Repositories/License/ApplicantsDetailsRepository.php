@@ -36,20 +36,21 @@ class ApplicantsDetailsRepository extends CustomBaseRepository
     {
         // Get the authenticated user
         $user = auth()->user();
-
+    
         // Ensure the authenticated user is a valid applicant
         if (!$user || !$user->applicant) {
             return collect(); // Return empty collection instead of aborting
         }
-
+    
         // Initialize query builder for licenses linked to this applicant
-        $query = License::query()->where('applicant_id', $user->applicant->id);
-
+        $query = License::query()->where('applicant_id', $user->applicant->id)
+            ->with('licenseType');  // Make sure to load the license type name
+    
         // Include soft-deleted records if requested
         if ($trashed) {
             $query->withTrashed();
         }
-
+    
         // Apply search filter
         if (!empty($search)) {
             $search = '%' . strtolower($search) . '%';
@@ -60,14 +61,19 @@ class ApplicantsDetailsRepository extends CustomBaseRepository
                     });
             });
         }
-
+    
         // Ensure ordering by valid columns
         $validOrderBy = ['id', 'license_number', 'created_at'];
         if (in_array($order_by, $validOrderBy)) {
             $query->orderBy($order_by, $sort);
         }
-
+    
         // Return results as collection
-        return $query->distinct()->get();
+        return $query->distinct()->get()->map(function($license) {
+            $license->license_type_name = $license->licenseType->name; // Add license_type_name to the result
+            return $license;
+        });
     }
+    
+    
 }

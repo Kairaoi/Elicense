@@ -14,8 +14,8 @@
                 <th>License Number</th>
                 <th>License Type</th>
                 <th>Vat</th>
-                <th>Total Fee</th>
-                <th>Total Amount Inc Vat</th>
+                <th>Sub Total </th>
+                <th>Total Fee Inc Vat</th>
                 <th>Status</th>
                 <th>Issue Date</th>
                 <th>Expiry Date</th>
@@ -66,33 +66,28 @@ $(document).ready(function() {
                 }
             },
             { 
-                data: 'license_type_id', 
-                render: function(data) {
-                    let licenseTypes = {
-                        1: "Export License",
-                        2: "Import License",
-                        3: "Fishing License"
-                    };
-                    return licenseTypes[data] || "Unknown";
-                }
+                data: 'license_type_name'
             },
             { 
                 data: 'vat_amount',
-                render: function(data) {
-                    return `$${parseFloat(data).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                render: function(data, type, row) {
+                    const currency = getCurrency(row.license_type_name);
+                    return formatCurrency(data, currency);
                 }
             },
             { 
                 data: 'total_fee',
-                render: function(data) {
-                    return `$${parseFloat(data).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                render: function(data, type, row) {
+                    const currency = getCurrency(row.license_type_name);
+                    return formatCurrency(data, currency);
                 }
             },
             { 
                 data: null,
-                render: function(data) {
+                render: function(data, type, row) {
                     let total = parseFloat(data.total_fee) + parseFloat(data.vat_amount);
-                    return `$${total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                    const currency = getCurrency(row.license_type_name);
+                    return formatCurrency(total, currency);
                 },
                 title: "Total Amount (Incl. VAT)"
             },
@@ -123,6 +118,18 @@ $(document).ready(function() {
     });
 });
 
+// Helper function to format the currency with prefix (AUD$ or USD$)
+function formatCurrency(amount, currency) {
+    const currencySymbol = currency === 'USD' ? 'USD$' : 'AUD$';
+    return `${currencySymbol}${parseFloat(amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
 
+// Helper function to determine the currency based on the license type
+function getCurrency(licenseType) {
+    if (licenseType === 'Export License for Lobster' || licenseType === 'Export License for Petfish') {
+        return 'USD'; // USD for Export License for Lobster and Petfish
+    }
+    return 'AUD'; // Default to AUD for other license types
+}
 </script>
 @endpush

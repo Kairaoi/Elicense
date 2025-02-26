@@ -71,38 +71,76 @@ class LicensesController extends Controller
      * @param Request $request
      * @return Response
      */
-    public function getDataTables(Request $request)
-{
-    $search = $request->input('search.value', '');
-    $query = $this->licensesRepository->getForDataTable($search);
-
-    // Apply filters
-    if ($request->filled('applicant_name')) {
-        $query->whereRaw("LOWER(CONCAT(applicants.first_name, ' ', applicants.last_name)) LIKE ?", ['%' . strtolower($request->input('applicant_name')) . '%']);
+    public function getDataTables(Request $request) {
+        $search = $request->input('search.value', '');
+        $query = License::join('license_types', 'licenses.license_type_id', '=', 'license_types.id')
+                        ->join('applicants', 'licenses.applicant_id', '=', 'applicants.id')
+                        ->select(
+                            'licenses.id',
+                            'licenses.issue_date',
+                            'licenses.expiry_date',
+                            'licenses.status',
+                            'licenses.total_fee',
+                            'license_types.name as license_type_name',
+                            'applicants.first_name',
+                            'applicants.last_name',
+                            'applicants.company_name',
+                            DB::raw("CASE 
+                                WHEN applicants.company_name IS NOT NULL AND applicants.company_name != '' 
+                                THEN CONCAT(applicants.first_name, ' ', applicants.last_name, ' (', applicants.company_name, ')') 
+                                ELSE CONCAT(applicants.first_name, ' ', applicants.last_name) 
+                            END as applicant_name")
+                        );
+    
+        // Apply search
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->whereRaw("LOWER(CONCAT(applicants.first_name, ' ', applicants.last_name)) LIKE ?", ['%' . strtolower($search) . '%'])
+                  ->orWhere('license_types.name', 'LIKE', '%' . strtolower($search) . '%')
+                  ->orWhere('applicants.company_name', 'LIKE', '%' . strtolower($search) . '%');
+            });
+        }
+    
+        // Apply filters
+        if ($request->filled('applicant_name')) {
+            $query->whereRaw("LOWER(CONCAT(applicants.first_name, ' ', applicants.last_name)) LIKE ?", ['%' . strtolower($request->input('applicant_name')) . '%']);
+        }
+    
+        if ($request->filled('company_name')) {
+            $query->whereRaw("LOWER(applicants.company_name) LIKE ?", ['%' . strtolower($request->input('company_name')) . '%']);
+        }
+    
+        if ($request->filled('license_type')) {
+            $query->where('license_types.name', $request->input('license_type'));
+        }
+    
+        if ($request->filled('issue_date')) {
+            $query->whereDate('issue_date', $request->input('issue_date'));
+        }
+    
+        if ($request->filled('expiry_date')) {
+            $query->whereDate('expiry_date', $request->input('expiry_date'));
+        }
+    
+        if ($request->filled('status')) {
+            $query->where('licenses.status', $request->input('status'));
+        }
+        
+        // Check if applicant filter is applied from the blade form
+        if ($request->filled('applicant')) {
+            $query->where(function($q) use ($request) {
+                $search = strtolower($request->input('applicant'));
+                $q->whereRaw("LOWER(CONCAT(applicants.first_name, ' ', applicants.last_name)) LIKE ?", ['%' . $search . '%'])
+                  ->orWhere('applicants.company_name', 'LIKE', '%' . $search . '%');
+            });
+        }
+    
+        return DataTables::of($query)
+            ->rawColumns(['applicant_name'])
+            ->make(true);
     }
 
-    if ($request->filled('company_name')) {
-        $query->whereRaw("LOWER(applicants.company_name) LIKE ?", ['%' . strtolower($request->input('company_name')) . '%']);
-    }
 
-    if ($request->filled('license_type')) {
-        $query->where('license_types.name', $request->input('license_type'));
-    }
-
-    if ($request->filled('issue_date')) {
-        $query->whereDate('issue_date', $request->input('issue_date'));
-    }
-
-    if ($request->filled('expiry_date')) {
-        $query->whereDate('expiry_date', $request->input('expiry_date'));
-    }
-
-    if ($request->filled('status')) {
-        $query->where('status', $request->input('status'));
-    }
-
-    return DataTables::of($query)->make(true);
-}
 
 
     /**
