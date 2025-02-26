@@ -88,39 +88,122 @@ $(document).ready(function() {
             }
         },
         columns: [
-    { data: 'id' },
-    { data: 'applicant_name' }, // Changed from full_name to applicant_name
-    { data: 'license_type_name' },
-    { data: 'total_fee', render: function(data, type, row) {
-        let currencySymbol = 'AUD$';
-        if (row.license_type_name === 'Export License for Seacucumber' || row.license_type_name === 'Export License for Lobster') {
-            currencySymbol = 'USD$';
-        }
-        return `${currencySymbol}${parseFloat(data).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-    }},
-    { data: 'status', render: function(data) {
-        let formattedStatus = data.replace('_', ' ').toLowerCase().split(' ')
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(' ');
+            { data: 'id' },
+            { data: 'applicant_name' },
+            { data: 'license_type_name' },
+            { data: 'total_fee', render: function(data, type, row) {
+                // For export, return plain data
+                if (type === 'export') {
+                    let currencySymbol = 'AUD$';
+                    if (row.license_type_name === 'Export License for Seacucumber' || row.license_type_name === 'Export License for Lobster') {
+                        currencySymbol = 'USD$';
+                    }
+                    return currencySymbol + parseFloat(data).toFixed(2);
+                }
+                
+                // For display, format the number
+                let currencySymbol = 'AUD$';
+                if (row.license_type_name === 'Export License for Seacucumber' || row.license_type_name === 'Export License for Lobster') {
+                    currencySymbol = 'USD$';
+                }
+                return `${currencySymbol}${parseFloat(data).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            }},
+            { data: 'status', render: function(data, type, row) {
+                // For export, return plain status
+                if (type === 'export') {
+                    return data.replace('_', ' ').toLowerCase().split(' ')
+                        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                        .join(' ');
+                }
+                
+                // For display, format with badge
+                let formattedStatus = data.replace('_', ' ').toLowerCase().split(' ')
+                    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                    .join(' ');
 
-        let statusClass = 'status-' + data.toLowerCase().replace(/\s/g, '-');
-        return `<span class="status-badge ${statusClass}">${formattedStatus}</span>`;
-    }},
-    { data: null, orderable: false, render: function(data, type, row) {
-        return `<div class="dropdown">
-            <button class="btn btn-secondary btn-sm action-btn dropdown-toggle" type="button" 
-                    data-bs-toggle="dropdown" aria-expanded="false">
-                Actions
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end">
-                ${getActionButtons(row)}
-            </ul>
-        </div>`;
-    }}
-],
+                let statusClass = 'status-' + data.toLowerCase().replace(/\s/g, '-');
+                return `<span class="status-badge ${statusClass}">${formattedStatus}</span>`;
+            }},
+            { data: null, orderable: false, render: function(data, type, row) {
+                // Don't include actions column in exports
+                if (type === 'export') {
+                    return '';
+                }
+                
+                return `<div class="dropdown">
+                    <button class="btn btn-secondary btn-sm action-btn dropdown-toggle" type="button" 
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                        Actions
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        ${getActionButtons(row)}
+                    </ul>
+                </div>`;
+            }}
+        ],
         pageLength: 10,
         responsive: true,
-        order: [[0, 'desc']]
+        order: [[0, 'desc']],
+        
+        // Add export buttons
+        dom: '<"d-flex justify-content-between align-items-center mb-3"<"d-flex"B><"d-flex"f>>t<"d-flex justify-content-between"ip>',
+        buttons: [
+            {
+                extend: 'collection',
+                text: '<i class="fas fa-download"></i> Export',
+                className: 'btn btn-outline-primary mr-2',
+                buttons: [
+                    {
+                        extend: 'excel',
+                        text: '<i class="fas fa-file-excel"></i> Excel',
+                        exportOptions: {
+                            columns: [0, 1, 2, 3, 4] // Export all columns except actions
+                        },
+                        title: 'Licenses Registry - ' + new Date().toLocaleDateString(),
+                        className: 'dropdown-item'
+                    },
+                    {
+                        extend: 'csv',
+                        text: '<i class="fas fa-file-csv"></i> CSV',
+                        exportOptions: {
+                            columns: [0, 1, 2, 3, 4]
+                        },
+                        title: 'Licenses Registry - ' + new Date().toLocaleDateString(),
+                        className: 'dropdown-item'
+                    },
+                    {
+                        extend: 'pdf',
+                        text: '<i class="fas fa-file-pdf"></i> PDF',
+                        exportOptions: {
+                            columns: [0, 1, 2, 3, 4]
+                        },
+                        title: 'Licenses Registry - ' + new Date().toLocaleDateString(),
+                        className: 'dropdown-item',
+                        orientation: 'landscape',
+                        pageSize: 'A4',
+                        customize: function(doc) {
+                            // Add styling to PDF
+                            doc.styles.tableHeader.fontSize = 12;
+                            doc.styles.tableHeader.bold = true;
+                            doc.styles.tableHeader.color = '#333';
+                            doc.styles.tableHeader.fillColor = '#f3f3f3';
+                            doc.styles.tableHeader.alignment = 'center';
+                            
+                            // Add footer with date and page numbers
+                            doc.footer = function(currentPage, pageCount) {
+                                return {
+                                    columns: [
+                                        { text: 'Generated on: ' + new Date().toLocaleDateString(), alignment: 'left', margin: [20, 0] },
+                                        { text: 'Page ' + currentPage.toString() + ' of ' + pageCount, alignment: 'right', margin: [0, 0, 20, 0] }
+                                    ],
+                                    margin: [20, 0]
+                                };
+                            };
+                        }
+                    }
+                ]
+            }
+        ]
     });
 
     // Filter functionality
@@ -216,6 +299,21 @@ $(document).ready(function() {
         }
     }
 });
-
 </script>
+@endpush
+@push('styles')
+<!-- DataTables CSS -->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.dataTables.min.css">
+@endpush
+
+@push('scripts')
+<!-- DataTables JS & Extensions -->
+<script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
 @endpush
