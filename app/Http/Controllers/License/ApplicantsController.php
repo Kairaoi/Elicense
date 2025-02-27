@@ -55,9 +55,20 @@ class ApplicantsController extends Controller
      */
     public function getDataTables(Request $request)
     {
-        $search = $request->input('search.value', '');
-        $query = $this->applicantsRepository->getForDataTable($search);
-        return DataTables::of($query)->make(true);
+        $applicants = Applicant::with('licenses');
+
+        return DataTables::of($applicants)
+            ->addColumn('has_pending_license', function ($applicant) {
+                return $applicant->hasPendingLicenses();
+            })
+            ->rawColumns(['status'])
+            ->make(true);
+    }
+
+    public function getPendingCount()
+    {
+        $pendingCount = License::where('status', 'pending')->count();
+        return response()->json(['pendingCount' => $pendingCount]);
     }
 
     /**
@@ -474,22 +485,25 @@ public function downloadPDF($id)
 }
 
 public function getApplicantsData(Request $request)
-{
-    $applicants = Applicant::query();
+    {
+        $applicants = Applicant::query();
 
-    // Count pending applications
-    $pendingCount = License::where('status', 'pending')->count();
+        // Count pending applications
+        $pendingCount = License::where('status', 'pending')->count();
 
-    return DataTables::of($applicants)
-        ->addColumn('full_name', function ($applicant) {
-            return $applicant->first_name . ' ' . $applicant->last_name;
-        })
-        ->addColumn('actions', function ($applicant) {
-            return view('partials.applicant_actions', compact('applicant'))->render();
-        })
-        ->with(['pendingCount' => $pendingCount]) // Include pending count in the response
-        ->make(true);
-}
+        return DataTables::of($applicants)
+            ->addColumn('full_name', function ($applicant) {
+                return $applicant->first_name . ' ' . $applicant->last_name;
+            })
+            ->addColumn('actions', function ($applicant) {
+                return view('partials.applicant_actions', compact('applicant'))->render();
+            })
+            ->with(['pendingCount' => $pendingCount])
+            ->make(true);
+    }
+
+    
+   
 
 
 }

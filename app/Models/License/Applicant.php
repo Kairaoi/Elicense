@@ -69,6 +69,7 @@ class Applicant extends Model
         'created_by',
         'updated_by',
     ];
+    protected $appends = ['has_pending_license'];
     
     /**
      * The attributes that should be cast to native types.
@@ -116,6 +117,16 @@ public function licenses()
 public function user()
     {
         return $this->hasOne(User::class);
+    }
+// Helper method to check if applicant has pending licenses
+public function hasPendingLicenses()
+    {
+        return $this->licenses()->where('status', 'pending')->exists();
+    }
+
+    public function getHasPendingLicenseAttribute()
+    {
+        return $this->hasPendingLicenses();
     }
 
 }

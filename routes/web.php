@@ -46,6 +46,10 @@ Route::group([
     'prefix' => 'applicant',
     'middleware' => ['auth', 'role:lic.admin|lic.license'],
 ], function () {
+
+    // Add this new route for pending count
+    Route::get('/applicants/pending-count', [\App\Http\Controllers\License\ApplicantsController::class, 'getPendingCount'])
+        ->name('applicants.pending-count');
     
     Route::post('licenses/{id}/review', [\App\Http\Controllers\License\ApplicantsController::class, 'review'])->name('applicants.review');
     Route::get('applicants/{id}/activity-log', [\App\Http\Controllers\License\ApplicantsController::class, 'activityLog'])->name('applicants.activity-log');
