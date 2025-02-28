@@ -13,9 +13,7 @@
                 <th>ID</th>
                 <th>License Number</th>
                 <th>License Type</th>
-                <th>Vat</th>
-                <th>Sub Total </th>
-                <th>Total Fee Inc Vat</th>
+                <th>Sub Total</th>
                 <th>Status</th>
                 <th>Issue Date</th>
                 <th>Expiry Date</th>
@@ -90,16 +88,6 @@ $(document).ready(function() {
                 data: 'license_type_name'
             },
             { 
-                data: 'vat_amount',
-                render: function(data, type, row) {
-                    const currency = getCurrency(row.license_type_name);
-                    if (type === 'export') {
-                        return currency + parseFloat(data).toFixed(2);
-                    }
-                    return formatCurrency(data, currency);
-                }
-            },
-            { 
                 data: 'total_fee',
                 render: function(data, type, row) {
                     const currency = getCurrency(row.license_type_name);
@@ -108,18 +96,6 @@ $(document).ready(function() {
                     }
                     return formatCurrency(data, currency);
                 }
-            },
-            { 
-                data: null,
-                render: function(data, type, row) {
-                    let total = parseFloat(data.total_fee) + parseFloat(data.vat_amount);
-                    const currency = getCurrency(row.license_type_name);
-                    if (type === 'export') {
-                        return currency + total.toFixed(2);
-                    }
-                    return formatCurrency(total, currency);
-                },
-                title: "Total Amount (Incl. VAT)"
             },
             { 
                 data: 'status',
@@ -167,7 +143,7 @@ $(document).ready(function() {
                         extend: 'excel',
                         text: '<i class="fas fa-file-excel"></i> Excel',
                         exportOptions: {
-                            columns: [0, 1, 2, 3, 4, 5, 6, 7, 8] // Export all columns
+                            columns: [0, 1, 2, 3, 4, 5, 6, 7] // Export all columns except VAT and Total Amount
                         },
                         title: 'Applicant Licenses - ' + new Date().toLocaleDateString(),
                         className: 'dropdown-item'
@@ -176,7 +152,7 @@ $(document).ready(function() {
                         extend: 'csv',
                         text: '<i class="fas fa-file-csv"></i> CSV',
                         exportOptions: {
-                            columns: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+                            columns: [0, 1, 2, 3, 4, 5, 6, 7]
                         },
                         title: 'Applicant Licenses - ' + new Date().toLocaleDateString(),
                         className: 'dropdown-item'
@@ -185,7 +161,7 @@ $(document).ready(function() {
                         extend: 'pdf',
                         text: '<i class="fas fa-file-pdf"></i> PDF',
                         exportOptions: {
-                            columns: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+                            columns: [0, 1, 2, 3, 4, 5, 6, 7]
                         },
                         title: 'Applicant Licenses - ' + new Date().toLocaleDateString(),
                         className: 'dropdown-item',

@@ -194,25 +194,32 @@ public function getSpeciesForApplicant(Request $request)
      * @param int $id
      * @return Response
      */
-    public function show($id)
-{
-    // Retrieve the export declaration by ID
-    $declaration = $this->exportDeclarationRepository->getById($id);
-    
-    if (!$declaration) {
-        return response()->json(['message' => 'Export declaration not found'], Response::HTTP_NOT_FOUND);
+    public function show($id) {
+        // Retrieve the export declaration by ID
+        $declaration = $this->exportDeclarationRepository->getById($id);
+        
+        if (!$declaration) {
+            return response()->json(['message' => 'Export declaration not found'], Response::HTTP_NOT_FOUND);
+        }
+        
+        // Properly load the license relationship
+        $declaration->load('license');
+        
+        // Get the associated license type of the declaration
+        if ($declaration->license) {
+            $licenseTypeId = $declaration->license->license_type_id;
+            
+            // Load species for the specific license type
+            $declaration->load(['species.species' => function ($query) use ($licenseTypeId) {
+                $query->where('license_type_id', $licenseTypeId);
+            }]);
+        } else {
+            // If there's no license, just load all species
+            $declaration->load('species.species');
+        }
+        
+        return view('license.export.invoice', compact('declaration'));
     }
-    
-    // Get the associated license type of the declaration
-    $licenseTypeId = $declaration->license->license_type_id; // Make sure the 'license' relationship is correctly loaded
-    
-    // Load species for the specific license type
-    $declaration->load(['species.species' => function ($query) use ($licenseTypeId) {
-        $query->where('license_type_id', $licenseTypeId); // Filter species by license type
-    }]);
-
-    return view('license.export.invoice', compact('declaration'));
-}
 
     /**
      * Show the form for editing the specified export declaration.
