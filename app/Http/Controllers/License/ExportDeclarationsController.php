@@ -8,6 +8,7 @@ use App\Repositories\License\ApplicantsRepository;
 use App\Repositories\License\SpeciesRepository;
 use App\Models\License\ExportDeclaration;
 use App\Models\License\ExportDeclarationSpecies;
+use App\Repositories\License\LicenseTypesRepository;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use DataTables;
@@ -19,17 +20,19 @@ class ExportDeclarationsController extends Controller
     protected $exportDeclarationRepository;
     protected $applicantsRepository;
     protected $speciesRepository;
+    protected $licenseTypesRepository;
 
     /**
      * ExportDeclarationsController constructor.
      *
      * @param ExportDeclarationRepository $exportDeclarationRepository
      */
-    public function __construct(ApplicantsRepository $applicantsRepository,ExportDeclarationRepository $exportDeclarationRepository, SpeciesRepository $speciesRepository)
+    public function __construct(ApplicantsRepository $applicantsRepository,ExportDeclarationRepository $exportDeclarationRepository, SpeciesRepository $speciesRepository, LicenseTypesRepository $licenseTypesRepository)
     {
         $this->exportDeclarationRepository = $exportDeclarationRepository;
         $this->applicantsRepository = $applicantsRepository;
         $this->speciesRepository = $speciesRepository;
+        $this->licenseTypesRepository = $licenseTypesRepository;
     }
 
     /**
@@ -61,21 +64,25 @@ class ExportDeclarationsController extends Controller
      * @return Response
      */
     public function create()
-{
-    // Assuming applicants have 'first_name' and 'id' fields and species have 'name' and 'id' fields
-    $applicants = $this->applicantsRepository->pluck();
-    $speciesList = $this->speciesRepository->pluck('name', 'id');
-    // dd($applicants);
-    return view('license.export.create')->with('applicants', $applicants)->with('speciesList', $speciesList);
-}
+    {
+        $applicants = $this->applicantsRepository->pluck();
+        $speciesList = $this->speciesRepository->pluck('name', 'id');
+        $licenseTypes = \App\Models\License\LicenseType::pluck('name', 'id'); // Add this line
+        
+        return view('license.export.create')
+            ->with('applicants', $applicants)
+            ->with('speciesList', $speciesList)
+            ->with('licenseTypes', $licenseTypes); // Pass license types to view
+    }
 
-public function getSpeciesForApplicant(Request $request)
-{
-    $applicantId = $request->input('applicant_id');
-    $species = $this->speciesRepository->getSpeciesForApplicant($applicantId);
-    return response()->json($species);
-}
-
+    public function getSpeciesForApplicant(Request $request)
+    {
+        $applicantId = $request->input('applicant_id');
+        $licenseTypeId = $request->input('license_type_id');
+        
+        $species = $this->speciesRepository->getSpeciesForApplicant($applicantId, $licenseTypeId);
+        return response()->json($species);
+    }
 
     /**
      * Store a new export declaration and associated species data.
@@ -96,6 +103,7 @@ public function getSpeciesForApplicant(Request $request)
         try {
             $validatedData = $request->validate([
                 'applicant_id' => 'required|exists:applicants,id',
+                'license_type_id' => 'required|exists:license_types,id', // Add this line
                 'shipment_date' => 'required|date',
                 'export_destination' => 'required|string|max:255',
                 'species' => 'required|array',

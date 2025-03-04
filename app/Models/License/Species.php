@@ -14,6 +14,7 @@ class Species extends Model
         'name',
         'license_type_id',
         'quota',
+        'year',
         'unit_price',
         'created_by',
         'updated_by',

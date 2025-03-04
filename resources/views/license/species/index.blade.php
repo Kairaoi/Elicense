@@ -22,6 +22,7 @@
             ['title' => 'Name', 'data' => 'name', 'name' => 'name'],
             ['title' => 'License Type ID', 'data' => 'license_type_id', 'name' => 'license_type_id'],
             ['title' => 'Quota', 'data' => 'quota', 'name' => 'quota'],
+             ['title' => 'Year', 'data' => 'year', 'name' => 'year'],
             ['title' => 'Unit Price', 'data' => 'unit_price', 'name' => 'unit_price'],
             
            

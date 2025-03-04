@@ -85,40 +85,47 @@ public function getDisplayLicenseTypeName()
     return str_replace('Export License for', 'Harvest License for', $originalName);
 }
 
+// In App\Models\License\HarvesterLicense.php
 public static function generateLicenseNumber($licenseTypeId)
 {
-    try {
-        // Get the current year
-        $year = date('Y');
-        
-        // Get the license type prefix
-        $prefixMap = [
-            1 => 'SC', // Seacucumber
-            2 => 'PF', // Petfish
-            3 => 'LB', // Lobster
-            4 => 'SF'  // Shark Fin
-        ];
-        
-        $prefix = $prefixMap[$licenseTypeId] ?? 'HL';
-
-        // Get the last license number for this type and year
-        $lastLicense = self::where('license_number', 'like', $prefix . $year . '%')
-            ->orderBy('license_number', 'desc')
-            ->first();
-
-        if ($lastLicense) {
-            // Extract the sequence number and increment
-            $sequence = intval(substr($lastLicense->license_number, -4)) + 1;
-        } else {
-            $sequence = 1;
-        }
-
-        // Format: PREFIX-YEAR-SEQUENCE (e.g., SC-2024-0001)
-        return sprintf('%s-%s-%04d', $prefix, $year, $sequence);
-    } catch (\Exception $e) {
-        \Log::error('Error generating license number: ' . $e->getMessage());
-        throw $e;
+    // Get license type prefix
+    $prefix = self::getLicenseTypePrefix($licenseTypeId);
+    
+    // Get current year
+    $year = date('Y');
+    
+    // Find the highest sequence number for this license type and year
+    $latestLicense = self::where('license_number', 'LIKE', $prefix . '-' . $year . '-%')
+                         ->orderBy('license_number', 'desc')
+                         ->first();
+    
+    $sequence = 1; // Default to 1 if no existing licenses
+    
+    if ($latestLicense) {
+        // Extract the sequence number from the latest license
+        $parts = explode('-', $latestLicense->license_number);
+        $lastSequence = (int) end($parts);
+        $sequence = $lastSequence + 1;
     }
+    
+    // Format with leading zeros (4 digits)
+    $formattedSequence = str_pad($sequence, 4, '0', STR_PAD_LEFT);
+    
+    // Generate the new license number
+    return $prefix . '-' . $year . '-' . $formattedSequence;
 }
 
+// Helper method to get license type prefix
+private static function getLicenseTypePrefix($licenseTypeId)
+{
+    $prefixes = [
+        1 => 'SC', // Sea cucumber
+        2 => 'PF', // Pet fish
+        3 => 'LB', // Lobster
+        4 => 'SF', // Shark fin
+        // Add more as needed
+    ];
+    
+    return $prefixes[$licenseTypeId] ?? 'HL'; // Default to HL if no match
+}
 }

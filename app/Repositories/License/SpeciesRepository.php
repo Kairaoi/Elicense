@@ -128,17 +128,25 @@ class SpeciesRepository extends CustomBaseRepository
     return $species;  // Still an Eloquent\Collection
 }
 
-public function getSpeciesForApplicant($applicantId)
+public function getSpeciesForApplicant($applicantId, $licenseTypeId = null)
 {
-    return DB::table('species')
+    $query = DB::table('species')
         ->join('license_items', 'species.id', '=', 'license_items.species_id')
         ->join('licenses', 'license_items.license_id', '=', 'licenses.id')
-        ->where('licenses.applicant_id', $applicantId)
-        ->select(
-            'species.id',
-            DB::raw("CONCAT(species.name, ' (Quota: ', species.quota, ', Unit Price: ', species.unit_price, ')') AS display_text")
-        )
-        ->pluck('display_text', 'id');
+        ->where('licenses.applicant_id', $applicantId);
+    
+    // Add license type filter if provided
+    if ($licenseTypeId) {
+        $query->where('licenses.license_type_id', $licenseTypeId);
+    }
+    
+    // Select and format the results
+    return $query->select(
+        'species.id',
+        DB::raw("CONCAT(species.name, ' (Quota: ', species.quota, ', Year: ', species.year, ', Unit Price: ', species.unit_price, ')') AS display_text")
+    )
+    ->pluck('display_text', 'id');
 }
+
 
 }

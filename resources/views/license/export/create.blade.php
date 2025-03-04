@@ -46,6 +46,22 @@
             </div>
         </div>
 
+        {{-- Add this after the export destination field --}}
+<div class="form-group">
+    <label for="license_type_id">License Type</label>
+    <select name="license_type_id" id="license_type_id" class="form-control @error('license_type_id') is-invalid @enderror">
+        <option value="">Select License Type</option>
+        @foreach($licenseTypes as $id => $name)
+            <option value="{{ $id }}" {{ old('license_type_id') == $id ? 'selected' : '' }}>
+                {{ $name }}
+            </option>
+        @endforeach
+    </select>
+    @error('license_type_id')
+        <div class="invalid-feedback">{{ $message }}</div>
+    @enderror
+</div>
+
         <!-- Species Fields -->
         <div id="species-container">
             <div class="species-row row mb-3">
@@ -98,13 +114,42 @@
     let applicantSpecies = @json($speciesList);
 
     $(document).ready(function() {
+        // Handler for license type change
+        $('#license_type_id').change(function() {
+            let licenseTypeId = $(this).val();
+            let applicantId = $('#applicant_id').val();
+            
+            if(applicantId && licenseTypeId) {
+                $.ajax({
+                    url: '{{ route("export.get-species-for-applicant") }}',
+                    type: 'GET',
+                    data: { 
+                        applicant_id: applicantId,
+                        license_type_id: licenseTypeId 
+                    },
+                    success: function(data) {
+                        applicantSpecies = data;
+                        $('#species-container').empty();
+                        speciesCount = 0;
+                        addSpeciesRow();
+                    }
+                });
+            }
+        });
+        
+        // Handler for applicant change
         $('#applicant_id').change(function() {
             let applicantId = $(this).val();
+            let licenseTypeId = $('#license_type_id').val();
+            
             if(applicantId) {
                 $.ajax({
                     url: '{{ route("export.get-species-for-applicant") }}',
                     type: 'GET',
-                    data: { applicant_id: applicantId },
+                    data: { 
+                        applicant_id: applicantId,
+                        license_type_id: licenseTypeId 
+                    },
                     success: function(data) {
                         applicantSpecies = data;
                         $('#species-container').empty();

@@ -99,7 +99,8 @@ class FisheryLicensingSystemSeeder extends Seeder
             [
                 'name' => 'Surf Redfish',
                 'license_type_id' => 1,
-                'quota' => 91000.00,
+                'quota' => 84222.00,
+                'year' => 2025,
                 'unit_price' => 3.00,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -109,7 +110,8 @@ class FisheryLicensingSystemSeeder extends Seeder
             [
                 'name' => 'Brown Sandfish',
                 'license_type_id' => 1,
-                'quota' => 78000.00,
+                'quota' => 38286.00,
+                'year' => 2025,
                 'unit_price' => 3.00,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -119,7 +121,19 @@ class FisheryLicensingSystemSeeder extends Seeder
             [
                 'name' => 'Greenfish',
                 'license_type_id' => 1,
-                'quota' => 39000.00,
+                'quota' => 36138.00,
+                'year' => 2025,
+                'unit_price' => 5.00,
+                'created_at' => now(),
+                'updated_at' => now(),
+                'created_by' => $adminUserId,
+                'updated_by' => $adminUserId,
+            ],
+            [
+                'name' => 'Leopard fish',
+                'license_type_id' => 1,
+                'quota' => 8814.00,
+                'year' => 2025,
                 'unit_price' => 5.00,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -129,7 +143,8 @@ class FisheryLicensingSystemSeeder extends Seeder
             [
                 'name' => 'White teatfish',
                 'license_type_id' => 1,
-                'quota' => 52000.00,
+                'quota' => 51800.00,
+                'year' => 2025,
                 'unit_price' => 15.00,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -139,7 +154,8 @@ class FisheryLicensingSystemSeeder extends Seeder
             [
                 'name' => 'Black teatfish',
                 'license_type_id' => 1,
-                'quota' => 6500.00,
+                'quota' => 5977.00,
+                'year' => 2025,
                 'unit_price' => 10.00,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -149,7 +165,8 @@ class FisheryLicensingSystemSeeder extends Seeder
             [
                 'name' => 'Prickly teatfish',
                 'license_type_id' => 1,
-                'quota' => 5200.00,
+                'quota' => 49680.00,
+                'year' => 2025,
                 'unit_price' => 10.00,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -160,6 +177,7 @@ class FisheryLicensingSystemSeeder extends Seeder
                 'name' => 'Flame Angel',
                 'license_type_id' => 2,
                 'quota' => 77848.00,
+                'year' => 2025,
                 'unit_price' => 0.70,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -167,9 +185,10 @@ class FisheryLicensingSystemSeeder extends Seeder
                 'updated_by' => $adminUserId,
             ],
             [
-                'name' => 'Sea bass',
+                'name' => 'Sea Bass',
                 'license_type_id' => 2,
                 'quota' => 25376.00,
+                'year' => 2025,
                 'unit_price' => 0.40,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -177,9 +196,10 @@ class FisheryLicensingSystemSeeder extends Seeder
                 'updated_by' => $adminUserId,
             ],
             [
-                'name' => 'Black tang',
+                'name' => 'Black Tang',
                 'license_type_id' => 2,
                 'quota' => 624.00,
+                'year' => 2025,
                 'unit_price' => 20.00,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -189,27 +209,20 @@ class FisheryLicensingSystemSeeder extends Seeder
             [
                 'name' => 'Gold Flake',
                 'license_type_id' => 2,
-                'quota' => 1302.00,
+                'quota' => 2171.00,
+                'year' => 2025,
                 'unit_price' => 5.00,
                 'created_at' => now(),
                 'updated_at' => now(),
                 'created_by' => $adminUserId,
                 'updated_by' => $adminUserId,
             ],
-            [
-                'name' => 'Gold Flake (medium)',
-                'license_type_id' => 2,
-                'quota' => 869.00,
-                'unit_price' => 5.00,
-                'created_at' => now(),
-                'updated_at' => now(),
-                'created_by' => $adminUserId,
-                'updated_by' => $adminUserId,
-            ],
+            
             [
                 'name' => 'Lemon Peel',
                 'license_type_id' => 2,
                 'quota' => 6650.00,
+                'year' => 2025,
                 'unit_price' => 0.40,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -220,6 +233,7 @@ class FisheryLicensingSystemSeeder extends Seeder
                 'name' => 'Declivis',
                 'license_type_id' => 2,
                 'quota' => 648.00,
+                'year' => 2025,
                 'unit_price' => 6.00,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -229,7 +243,8 @@ class FisheryLicensingSystemSeeder extends Seeder
             [
                 'name' => 'Emperor',
                 'license_type_id' => 2,
-                'quota' => 349.00,
+                'quota' => 3000.00,
+                'year' => 2025,
                 'unit_price' => 6.00,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -239,7 +254,8 @@ class FisheryLicensingSystemSeeder extends Seeder
             [
                 'name' => 'Griffis',
                 'license_type_id' => 2,
-                'quota' => 223.00,
+                'quota' => 1500.00,
+                'year' => 2025,
                 'unit_price' => 10.00,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -247,9 +263,10 @@ class FisheryLicensingSystemSeeder extends Seeder
                 'updated_by' => $adminUserId,
             ],
             [
-                'name' => 'Gold puffer',
+                'name' => 'Gold Puffer',
                 'license_type_id' => 2,
                 'quota' => 210.00,
+                'year' => 2025,
                 'unit_price' => 5.00,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -259,7 +276,8 @@ class FisheryLicensingSystemSeeder extends Seeder
             [
                 'name' => 'Other species',
                 'license_type_id' => 2,
-                'quota' => 3916.00,
+                'quota' => 5000.00,
+                'year' => 2025,
                 'unit_price' => 1.00,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -270,6 +288,7 @@ class FisheryLicensingSystemSeeder extends Seeder
                 'name' => 'Lobster',
                 'license_type_id' => 3,
                 'quota' => 14165.00,
+                'year' => 2025,
                 'unit_price' => 5.00,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -279,7 +298,8 @@ class FisheryLicensingSystemSeeder extends Seeder
             [
                 'name' => 'Shark fin',
                 'license_type_id' => 4,
-                'quota' => 10000.00,  // Fix here, removing the comma
+                'quota' => 10000.00, 
+                'year' => 2025, // Fix here, removing the comma
                 'unit_price' => 130.00,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -335,100 +355,100 @@ class FisheryLicensingSystemSeeder extends Seeder
         //         'updated_by' => $adminUserId,
         //     ],
         // ]);
-        DB::table('harvester_applicants')->insert([
-            [
-                'first_name' => 'Alice',
-                'last_name' => 'Smith',
-                'phone_number' => '1234567890',
-                'email' => 'alice.smith@example.com',
-                'is_group' => false,
-                'group_size' => null,
-                'national_id' => 'NID-001',
-                'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now(),
-                'created_by' => $adminUserId,
-                'updated_by' => $adminUserId,
-            ],
-            [
-                'first_name' => 'Bob',
-                'last_name' => 'Johnson',
-                'phone_number' => '0987654321',
-                'email' => 'bob.johnson@example.com',
-                'is_group' => true,
-                'group_size' => 5,
-                'national_id' => 'NID-002',
-                'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now(),
-                'created_by' => $adminUserId,
-                'updated_by' => $adminUserId,
-            ],
-            [
-                'first_name' => 'Charlie',
-                'last_name' => 'Brown',
-                'phone_number' => '5551234567',
-                'email' => 'charlie.brown@example.com',
-                'is_group' => false,
-                'group_size' => null,
-                'national_id' => 'NID-003',
-                'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now(),
-                'created_by' => $adminUserId,
-                'updated_by' => $adminUserId,
-            ],
-        ]);
-        // Seed Harvester Licenses
-        DB::table('harvester_licenses')->insert([
-            [
-                'license_number' => 1,
-                'harvester_applicant_id' => 1, // Ensure this ID exists in the harvester_applicants table
-                'island_id' => 1, // Ensure this ID exists in the islands table
-                'license_type_id' => 1,
+    //     DB::table('harvester_applicants')->insert([
+    //         [
+    //             'first_name' => 'Alice',
+    //             'last_name' => 'Smith',
+    //             'phone_number' => '1234567890',
+    //             'email' => 'alice.smith@example.com',
+    //             'is_group' => false,
+    //             'group_size' => null,
+    //             'national_id' => 'NID-001',
+    //             'created_at' => Carbon::now(),
+    //             'updated_at' => Carbon::now(),
+    //             'created_by' => $adminUserId,
+    //             'updated_by' => $adminUserId,
+    //         ],
+    //         [
+    //             'first_name' => 'Bob',
+    //             'last_name' => 'Johnson',
+    //             'phone_number' => '0987654321',
+    //             'email' => 'bob.johnson@example.com',
+    //             'is_group' => true,
+    //             'group_size' => 5,
+    //             'national_id' => 'NID-002',
+    //             'created_at' => Carbon::now(),
+    //             'updated_at' => Carbon::now(),
+    //             'created_by' => $adminUserId,
+    //             'updated_by' => $adminUserId,
+    //         ],
+    //         [
+    //             'first_name' => 'Charlie',
+    //             'last_name' => 'Brown',
+    //             'phone_number' => '5551234567',
+    //             'email' => 'charlie.brown@example.com',
+    //             'is_group' => false,
+    //             'group_size' => null,
+    //             'national_id' => 'NID-003',
+    //             'created_at' => Carbon::now(),
+    //             'updated_at' => Carbon::now(),
+    //             'created_by' => $adminUserId,
+    //             'updated_by' => $adminUserId,
+    //         ],
+    //     ]);
+    //     // Seed Harvester Licenses
+    //     DB::table('harvester_licenses')->insert([
+    //         [
+    //             'license_number' => 1,
+    //             'harvester_applicant_id' => 1, // Ensure this ID exists in the harvester_applicants table
+    //             'island_id' => 1, // Ensure this ID exists in the islands table
+    //             'license_type_id' => 1,
                 
-                'fee' => 25.00,
-                'issue_date' => Carbon::now(),
-                'expiry_date' => Carbon::now()->addYear(),
-                'payment_receipt_no' => 'REC-001',
+    //             'fee' => 25.00,
+    //             'issue_date' => Carbon::now(),
+    //             'expiry_date' => Carbon::now()->addYear(),
+    //             'payment_receipt_no' => 'REC-001',
                 
-                'created_at' => now(),
-                'updated_at' => now(),
-                'created_by' => $adminUserId,
-                'updated_by' => $adminUserId,
-            ],
-        ]);
+    //             'created_at' => now(),
+    //             'updated_at' => now(),
+    //             'created_by' => $adminUserId,
+    //             'updated_by' => $adminUserId,
+    //         ],
+    //     ]);
 
-        // Seed Harvester License Species
-        DB::table('harvester_license_species')->insert([
-            [
+    //     // Seed Harvester License Species
+    //     DB::table('harvester_license_species')->insert([
+    //         [
                 
-                'harvester_license_id' => 1,
-                'species_id' => 2,
-                'created_at' => now(),
-                'updated_at' => now(),
-                'created_by' => $adminUserId,
-                'updated_by' => $adminUserId,
-            ],
-        ]);
+    //             'harvester_license_id' => 1,
+    //             'species_id' => 2,
+    //             'created_at' => now(),
+    //             'updated_at' => now(),
+    //             'created_by' => $adminUserId,
+    //             'updated_by' => $adminUserId,
+    //         ],
+    //     ]);
 
-        // Seed Group Members
-        DB::table('group_members')->insert([
-            [
-                'harvester_license_id' => 1,
-                'name' => 'Tebware Tangata',
-                'national_id' => 'KIR-67890',
-                'created_at' => now(),
-                'updated_at' => now(),
-                'created_by' => $adminUserId,
-                'updated_by' => $adminUserId,
-            ],
-            [
-                'harvester_license_id' => 1,
-                'name' => 'Taalua Bauro',
-                'national_id' => 'KIR-13579',
-                'created_at' => now(),
-                'updated_at' => now(),
-                'created_by' => $adminUserId,
-                'updated_by' => $adminUserId,
-            ],
-        ]);
-    }
+    //     // Seed Group Members
+    //     DB::table('group_members')->insert([
+    //         [
+    //             'harvester_license_id' => 1,
+    //             'name' => 'Tebware Tangata',
+    //             'national_id' => 'KIR-67890',
+    //             'created_at' => now(),
+    //             'updated_at' => now(),
+    //             'created_by' => $adminUserId,
+    //             'updated_by' => $adminUserId,
+    //         ],
+    //         [
+    //             'harvester_license_id' => 1,
+    //             'name' => 'Taalua Bauro',
+    //             'national_id' => 'KIR-13579',
+    //             'created_at' => now(),
+    //             'updated_at' => now(),
+    //             'created_by' => $adminUserId,
+    //             'updated_by' => $adminUserId,
+    //         ],
+    //     ]);
+     }
 }

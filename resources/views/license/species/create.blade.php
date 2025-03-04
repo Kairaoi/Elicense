@@ -58,6 +58,19 @@
                         </div>
 
                         <div class="row mb-3">
+                            <label for="year" class="col-md-4 col-form-label text-md-end">{{ __('Year') }}</label>
+                            <div class="col-md-6">
+                                <input id="year" type="number" class="form-control @error('year') is-invalid @enderror" 
+                                    name="year" value="{{ old('year') }}" required>
+                                @error('year')
+                                    <span class="invalid-feedback" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
                             <label for="unit_price" class="col-md-4 col-form-label text-md-end">{{ __('Unit Price') }}</label>
                             <div class="col-md-6">
                                 <input id="unit_price" type="number" step="0.01" class="form-control @error('unit_price') is-invalid @enderror" 

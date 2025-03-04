@@ -27,7 +27,7 @@ class DatabaseSeeder extends Seeder
             PermitSeeder::class,           // This should come AFTER InvoiceSeeder
             EquipmentRentalSeeder::class,
             AnnualTripFeesTableSeeder::class,
-            SpeciesTrackingSeeder::class,
+            // SpeciesTrackingSeeder::class,
 
         ]);
     }

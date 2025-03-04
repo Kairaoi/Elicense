@@ -54,6 +54,7 @@ class CreateFisheryLicensingSystemTables extends Migration
             $table->string('name');
             $table->foreignId('license_type_id')->constrained(); // References license_types
             $table->decimal('quota', 10, 2);
+            $table->integer('year');
             $table->decimal('unit_price', 10, 2);
             $table->timestamps();
             $table->softDeletes();
@@ -242,14 +243,18 @@ class CreateFisheryLicensingSystemTables extends Migration
         // 9. Group Members Table (references harvester_licenses)
         Schema::create('group_members', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('harvester_license_id')->constrained(); // References harvester_licenses
+            // Create foreign key to the harvester_licenses table
+            $table->foreignId('harvester_license_id')->constrained('harvester_licenses')->onDelete('cascade');
             $table->string('name');
             $table->string('national_id');
             $table->timestamps();
             $table->softDeletes();
+            
+            // User foreign key references for created_by and updated_by
             $table->foreignId('created_by')->constrained('users');
             $table->foreignId('updated_by')->nullable()->constrained('users');
         });
+        
 
         // 10. Export Declarations Table (references applicants)
         Schema::create('export_declarations', function (Blueprint $table) {

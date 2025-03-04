@@ -75,6 +75,7 @@ class SpeciesController extends Controller
             'name'             => 'required|string|max:255',
             'license_type_id'  => 'required|exists:license_types,id',
             'quota'            => 'required|numeric|min:0',
+            'year'            => 'required|numeric|min:0',
             'unit_price'       => 'required|numeric|min:0',
         ]);
 
@@ -137,6 +138,7 @@ class SpeciesController extends Controller
             'name'             => 'required|string|max:255',
             'license_type_id'  => 'required|exists:license_types,id',
             'quota'            => 'required|numeric|min:0',
+            'year'            => 'required|numeric|min:0',
             'unit_price'       => 'required|numeric|min:0',
         ]);
 

@@ -636,8 +636,9 @@ if (!$applicant) {
     $applicants = $this->applicantsRepository->pluck();
     $licenseTypes = $this->licenseTypesRepository->pluck();
     $speciesList = $this->speciesRepository->pluck();
+    $islands = $this->islandsRepository->pluck(); 
 
-    return view('license.license.edit', compact('license', 'applicant', 'licenseTypes', 'speciesList'));
+    return view('license.license.edit', compact('license', 'applicants', 'licenseTypes', 'speciesList', 'islands'));
 }
 
 
@@ -654,6 +655,8 @@ if (!$applicant) {
     $data = $request->validate([
         'applicant_id' => 'required|exists:applicants,id',
         'license_type_id' => 'required|exists:license_types,id',
+        'selected_islands' => 'required|array',
+            'selected_islands.*' => 'exists:islands,id',
         'species' => 'required|array',
         'species.*.id' => 'required|exists:species,id',
         'species.*.requested_quota' => 'required|numeric|min:0',
