@@ -70,4 +70,9 @@ class Island extends Model
 {
     return $this->hasOne(Agent::class);  // Assuming each user has one agent
 }
+
+public function licenses()
+{
+    return $this->belongsToMany(License::class, 'island_license');
+}
 }

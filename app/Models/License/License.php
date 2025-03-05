@@ -2,12 +2,17 @@
 
 namespace App\Models\License;
 
+use App\Models\Reference\Island;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
+
+use App\Models\License\SpeciesIslandQuota; 
+
+
 class License extends Model
 {
     use LogsActivity,HasFactory, SoftDeletes;
@@ -201,5 +206,29 @@ class License extends Model
 
     return ucfirst(trim($result));
 }
+public function licenseSpeciesQuotas()
+    {
+        return $this->hasMany(SpeciesIslandQuota::class, 'license_id');
+    }
+
+    public function speciesQuotas()
+    {
+        return $this->belongsToMany(Species::class, 'license_species_quotas')
+            ->withPivot('quota', 'island_id');
+    }
+
+    public function getCurrentQuota($speciesId, $islandId)
+{
+    $quota = SpeciesIslandQuota::where('species_id', $speciesId)
+        ->where('island_id', $islandId)
+        ->first();
+
+    return $quota ? $quota->quota : 0;
+}
+public function islands()
+{
+    return $this->belongsToMany(Island::class, 'island_license');
+}
+
 
 }

@@ -305,11 +305,19 @@ class CreateFisheryLicensingSystemTables extends Migration
             $table->timestamps();
             $table->foreignId('created_by')->constrained('users');
         });
+
+        Schema::create('island_license', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('license_id')->constrained()->onDelete('cascade');
+            $table->foreignId('island_id')->constrained()->onDelete('cascade');
+            $table->timestamps();
+        });
     }
 
     public function down()
     {
         // Dropping tables in reverse order to prevent foreign key constraint issues
+        Schema::dropIfExists('island_license');
         Schema::dropIfExists('island_quota_histories');
         Schema::dropIfExists('species_quota_histories');
         Schema::dropIfExists('export_declaration_species');

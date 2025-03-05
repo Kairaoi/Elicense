@@ -619,27 +619,77 @@ if (!$applicant) {
      * @return Response
      */
     public function edit($id)
-{
-    $license = $this->licensesRepository->getById($id);
+    {
+        // Fetch the existing license
+        $license = $this->licensesRepository->getById($id);
     
-    if (!$license) {
-        return redirect()->route('licenses.index')->with('error', 'License not found.');
+        // Null checks with fallback to empty collections
+        $applicants = $this->applicantsRepository->pluck() ?? collect();
+        $licenseTypes = $this->licenseTypesRepository->pluck() ?? collect();
+        $islands = $this->islandsRepository->pluck() ?? collect();
+    
+        // Additional null checks
+        if (!$license) {
+            abort(404, 'License not found');
+        }
+    
+        // Initialize arrays to store species by license type and available quotas
+        $speciesByLicenseType = [];
+        $availableQuotas = [];
+        
+        // Safely get selected species
+        $selectedSpecies = $license->species ? $license->species->pluck('id')->toArray() : [];
+    
+        // Additional check to prevent errors if license types are empty
+        if ($licenseTypes->isEmpty()) {
+            \Log::error('No license types found in edit method');
+            return back()->with('error', 'No license types available');
+        }
+    
+        // Loop through each license type to get species and available quotas
+        foreach ($licenseTypes as $id => $name) {
+            // Fetch species for each license type
+            $speciesForLicenseType = $this->speciesRepository->getByLicenseType($id) ?? collect();
+            
+            if ($speciesForLicenseType->isEmpty()) {
+                \Log::info("No species found for license type: $id");
+                continue;
+            }
+    
+            $speciesByLicenseType[$id] = $speciesForLicenseType;
+    
+            // Loop through each species for the current license type
+            foreach ($speciesForLicenseType as $species) {
+                foreach ($islands as $islandId => $islandName) {
+                    // Fetch quota for the species on the island, prioritizing the most recent year
+                    $quota = SpeciesIslandQuota::where('species_id', $species->id)
+                        ->where('island_id', $islandId)
+                        ->whereNotNull('remaining_quota')
+                        ->orderBy('year', 'desc')
+                        ->first();
+    
+                    // Store the available quota for the species on the island
+                    $availableQuotas[$species->id][$islandId] = $quota ? $quota->remaining_quota : 0;
+                }
+            }
+        }
+    
+        // Optional: Log the available quotas and species by license type for debugging
+        \Log::info('Available Quotas:', $availableQuotas);
+        \Log::info('Species by License Type:', $speciesByLicenseType);
+        $selectedIslands = $license->islands->pluck('id')->toArray();
+        // Return the view with the necessary data
+        return view('license.license.edit', compact(
+            'license',
+            'applicants',
+            'licenseTypes',
+            'speciesByLicenseType',
+            'islands',
+            'availableQuotas',
+            'selectedIslands',
+            'selectedSpecies'
+        ));
     }
-
-    $applicant = $this->applicantsRepository->getById($license->applicant_id);
-
-    if (!$applicant) {
-        return redirect()->route('applicants.create')->with('error', 'Please submit applicant information first.');
-    }
-
-    // Fetch applicants and license types for dropdowns if needed
-    $applicants = $this->applicantsRepository->pluck();
-    $licenseTypes = $this->licenseTypesRepository->pluck();
-    $speciesList = $this->speciesRepository->pluck();
-    $islands = $this->islandsRepository->pluck(); 
-
-    return view('license.license.edit', compact('license', 'applicants', 'licenseTypes', 'speciesList', 'islands'));
-}
 
 
     /**
