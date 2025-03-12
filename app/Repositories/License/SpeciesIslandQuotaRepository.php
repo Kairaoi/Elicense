@@ -69,48 +69,45 @@ class SpeciesIslandQuotaRepository extends CustomBaseRepository
      * @return Collection
      */
     public function getForDataTable($search = '', $order_by = 'id', $sort = 'asc', $trashed = false): Collection
-    {
-        $query = $this->getModelInstance()->newQuery();  // Initialize the query builder
+{
+    $query = $this->getModelInstance()->query()
+        ->with(['species:id,name', 'island:id,name']); // Load relationships to avoid joins
 
-        // Include soft-deleted records if $trashed is true
-        if ($trashed) {
-            $query->withTrashed();  // Include soft-deleted records
-        } else {
-            $query->withoutTrashed();  // Exclude soft-deleted records
-        }
+    // Include or exclude soft-deleted records
+    if ($trashed) {
+        $query->withTrashed();
+    }
 
-        // Join the species and island tables
-        $query->join('species', 'species_island_quotas.species_id', '=', 'species.id')
-              ->join('islands', 'species_island_quotas.island_id', '=', 'islands.id')
-              ->select('species_island_quotas.*', 
-                       'species.name as species_name', 
-                       'islands.name as island_name');
-
-        // Search logic: check if $search is not empty
-        if (!empty($search)) {
-            $search = '%' . strtolower($search) . '%';  // Make the search term case-insensitive and add wildcards
-            $query->where(function ($query) use ($search) {
-                $query->whereRaw('LOWER(species.name) LIKE ?', [$search])
-                      ->orWhereRaw('LOWER(islands.name) LIKE ?', [$search])
-                      ->orWhere('year', 'LIKE', $search)
-                      ->orWhere('island_quota', 'LIKE', $search)
-                      ->orWhere('remaining_quota', 'LIKE', $search);
-            });
-        }
-
-        // Ensure ordering by valid columns
-        $validOrderBy = ['id', 'species_id', 'island_id', 'year', 'island_quota', 'remaining_quota', 'species_name', 'island_name'];
-        if (in_array($order_by, $validOrderBy)) {
-            $query->orderBy($order_by, $sort);  // Apply sorting
-        }
-
-        // Fetch the result and map Carbon to the date fields
-        return $query->get()->map(function ($quota) {
-            // Use Carbon to format the dates
-            $quota->created_at = Carbon::parse($quota->created_at)->diffForHumans();
-            return $quota;
+    // Search logic
+    if (!empty($search)) {
+        $search = '%' . $search . '%';
+        $query->where(function ($q) use ($search) {
+            $q->whereHas('species', function ($q) use ($search) {
+                $q->where('name', 'LIKE', $search);
+            })->orWhereHas('island', function ($q) use ($search) {
+                $q->where('name', 'LIKE', $search);
+            })->orWhere('year', 'LIKE', $search)
+              ->orWhere('island_quota', 'LIKE', $search)
+              ->orWhere('remaining_quota', 'LIKE', $search);
         });
     }
+
+    // Ensure sorting by valid columns
+    $validOrderBy = ['id', 'species_id', 'island_id', 'year', 'island_quota', 'remaining_quota'];
+    if (!in_array($order_by, $validOrderBy)) {
+        $order_by = 'id'; // Default ordering
+    }
+
+    $query->orderBy($order_by, $sort);
+
+    return $query->get()->map(function ($quota) {
+        $quota->species_name = $quota->species->name ?? null;
+        $quota->island_name = $quota->island->name ?? null;
+        $quota->created_at = Carbon::parse($quota->created_at)->diffForHumans();
+        return $quota;
+    });
+}
+
 
     /**
      * Get a list of species island quotas for a specific year.
