@@ -6,129 +6,113 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sea Cucumber Regulation 2024 License</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 10px; /* Reduced margin */
-            line-height: 1.2; /* Reduced line spacing */
-        }
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    line-height: 1.25;
+    font-size: 15px;
+}
 
-        .header {
-            text-align: center;
-            margin-bottom: 10px; /* Reduced bottom margin */
-        }
+.content {
+    max-width: 750px;
+    margin: 0 auto;
+    padding: 10px;
+    background-color: white;
+}
 
-        .header img {
-            width: 100px; /* Set a suitable width for the coat of arms */
-            height: auto; /* Maintain aspect ratio */
-            margin-bottom: 5px; /* Space between image and text */
-        }
+.header {
+    text-align: center;
+    margin-bottom: 8px;
+}
 
-        .header p {
-            margin: 3px; /* Reduced paragraph margin */
-            font-size: 14px; /* Reduced font size */
-        }
+.header p {
+    margin: 2px;
+    font-size: 15px;
+}
 
-        h1 {
-            text-align: center;
-            font-size: 22px; /* Reduced font size */
-            margin-bottom: 8px; /* Reduced bottom margin */
-        }
+.header img {
+    max-width: 110px;
+    margin-bottom: 5px;
+}
 
-        h2 {
-            text-align: center;
-            font-size: 18px; /* Reduced font size */
-            margin: 10px 0; /* Reduced margin */
-        }
+h1 {
+    text-align: center;
+    font-size: 18px;
+    margin: 6px 0;
+}
 
-        h3 {
-            font-size: 16px; /* Reduced font size */
-            margin-top: 8px; /* Reduced margin */
-            margin-bottom: 5px; /* Reduced bottom margin */
-            text-align: center;
-            font-weight: bold;
-            color: #2c3e50;
-        }
+h2 {
+    text-align: center;
+    font-size: 16px;
+    margin: 6px 0;
+}
 
-        .license-number {
-            font-weight: bold;
-            margin: 5px 0; /* Reduced margin */
-            text-align: center;
-        }
+h3 {
+    font-size: 15px;
+    margin: 6px 0;
+}
 
-        .conditions {
-            margin: 8px 0; /* Reduced margin */
-            padding-left: 15px;
-            font-size: 14px; /* Reduced font size */
-        }
+.license-number {
+    font-weight: bold;
+    margin: 4px 0;
+    text-align: center;
+    font-size: 15px;
+}
 
-        .conditions li {
-            margin-bottom: 3px; /* Reduced space between list items */
-        }
+.conditions {
+    margin: 6px 0;
+    padding-left: 20px;
+}
 
-        .signature {
-            margin-top: 15px; /* Reduced margin */
-            text-align: right;
-            font-size: 14px; /* Reduced font size */
-        }
+.conditions li {
+    margin-bottom: 1px;
+}
 
-        .content {
-            max-width: 700px; /* Reduced max width */
-            margin: 0 auto;
-        }
-        .watermark-revoked {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(-45deg);
-            font-size: 120px;
-            color: rgba(255, 0, 0, 0.5);
-            pointer-events: none;
-            z-index: 1000;
-            white-space: nowrap;
-            user-select: none;
-            font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-        }
+.issue-date {
+    font-size: 14px;
+    margin-top: 6px;
+}
 
-        .watermark-revoked-text {
-            position: fixed;
-            top: 60%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(-45deg);
-            font-size: 60px;
-            color: rgba(255, 0, 0, 0.5);
-            pointer-events: none;
-            z-index: 1000;
-            white-space: nowrap;
-            user-select: none;
-            font-weight: bold;
-        }
+.signature {
+    text-align: right;
+    font-size: 14px;
+    line-height: 1.2;
+    margin-top: 5px;
+}
 
-        @media print {
-            .watermark-revoked,
-            .watermark-revoked-text {
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-        }
+.signature p {
+    margin: 2px 0;
+}
+
+p {
+    margin: 4px 0;
+}
+
+@page {
+    size: A4;
+    margin: 12mm;
+}
+
+@media print {
+    body {
+        width: 210mm;
+        height: 297mm;
+    }
+}
+
     </style>
 </head>
 
 <body>
-@if(isset($isRevoked) && $isRevoked)
-        <div class="watermark-revoked">REVOKED</div>
-        <div class="watermark-revoked-text">License No Longer Valid</div>
-    @else
-        <div class="watermark">DRAFTED</div>
-    @endif
     <div class="content">
         <div class="header">
-        <img src="{{ asset('images/coat_of_arms.png') }}" alt="Coat of Arms of Kiribati">
+            <img src="{{ public_path('images/coat_ovf_arms.png') }}" alt="Coat of Arms of Kiribati">
             <p><strong>GOVERNMENT OF KIRIBATI</strong></p>
             <p>MINISTRY OF FISHERIES AND MARINE RESOURCES DEVELOPMENT</p>
             <p>P.O.Box 64, Bairiki, Tarawa, Republic of Kiribati</p>
-            <p>Tel: (686) 21099 | Fax: (686) 21120</p>
-            <p>Email: <a href="mailto:info@mfmrd.gov.ki">info@mfmrd.gov.ki</a></p>
+            <p>Tel: (686) 75021099 | Fax: (686) 75021525</p>
+            <p>Email: <a href="mailto:notification@mfor.gov.ki">notification@mfor.gov.ki</a></p>
         </div>
 
         <h1>Sea Cucumber Regulation 2024</h1>
@@ -138,30 +122,29 @@
 
         <p>HAVING SATISFIED ALL the necessary legal requirements prescribed by the above-mentioned regulation, a License is hereby granted to:</p>
         
-        <p style="text-align: center;"><strong>{{ $license->applicant->first_name ?? 'N/A' }}  {{ $license->applicant->last_name ?? 'N/A' }}</strong></p>
+        <p style="text-align: center;"><strong>{{ $license->applicant->first_name ?? 'N/A' }}  {{ $license->applicant->last_name ?? 'N/A' }} </strong></p>
         
         <h3>Subject to the following Conditions:</h3>
         
         <ol class="conditions">
             <li>License is not transferable;</li>
-            <li>License valid until your allocated quota is reached;</li>
+            <li>License valid until your allocated quota is reached and/or expiration of license;</li>
             <li>Must be exhibited at the Head Office of the Business;</li>
             <li>Must be presented to an authorised officer upon request;</li>
             <li>Licensee must cooperate and assist an authorised officer upon request, while the said officer is executing his/her functions under the regulation or the Act;</li>
-            <li>Licensee must collect sea cucumber (live or dried) from listed Fishers stated in the application form (schedule I);</li>
-            <li>Licensee must ensure Sea Cucumber species be separated in accordance to species per Island until ready to be sealed for export, and must not exceed 25kg per bag or packaging;</li>
-            <li>Licensee must keep a record of all supplied Sea cucumber from listed fishers in application form (schedule I);</li>
+            <li>Licensee to comply with the minimum price set for all landed sea cucumber species prescribed by the Director;</li>
+            <li>Licensee must collect sea cucumber (live or dried) from listed stated agents;</li>
+            <li>Licensee must not possess or have in possession undersize sea cucumber (see Schedule 3);</li>
+            <li>Licensee must make sure sea cucumber species be separated in accordance to species per Island until ready to be sealed for export, and must not exceed 25kg per bag or packaging;</li>
+            <li>Licensee must keep record of all supplied sea cucumber from Outer Islands and submit monthly to the Director of Fisheries;</li>
             <li>Quota is not transferable in terms of spatial and time;</li>
-            <li>Licensee must not operate and harvest Sea cucumber in the uninhabited islands of the Line and Phoenix groups;</li>
+            <li>Licensee must not operate and harvest sea cucumber in the uninhabited island of the Line and Phoenix groups or any other designated closed area;</li>
             <li>Licensee not allowed to assist and provide SCUBA gears to local fishers;</li>
-            <li>Licensee must not buy sea cucumber that are harvested under clause 8 and 10 above;</li>
-            <li>Licensee must cease all operations once annual quota is exhausted;</li>
-            <li>Licensee shall pay their license fee no later than November at every physical year of operation.</li>
+            <li>Licensee must not buy sea cucumber that are harvested under clause 12 and 13 above;</li>
         </ol>
 
-        <p>
-            Issued this {{ \Carbon\Carbon::parse($license->issue_date)->format('jS') }} day of {{ \Carbon\Carbon::parse($license->issue_date)->format('F') }} {{ \Carbon\Carbon::parse($license->issue_date)->format('Y') }},
-            Expiry date: {{ \Carbon\Carbon::parse($license->expiry_date)->format('jS') }} day of {{ \Carbon\Carbon::parse($license->expiry_date)->format('F') }} {{ \Carbon\Carbon::parse($license->expiry_date)->format('Y') }}
+        <p class="issue-date">
+            Issued: 1st January 2025, Expires: 31st December 2025
         </p>
 
         <div class="signature">
