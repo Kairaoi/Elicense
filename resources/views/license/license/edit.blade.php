@@ -93,7 +93,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     const availableQuotas = @json($availableQuotas);
     const speciesByLicenseType = @json($speciesByLicenseType);
-
+    const existingQuotas = @json($existingQuotas ?? []);
+    
     function updateSpeciesQuotas() {
         const selectedLicenseType = licenseTypeSelect.value;
         const selectedIslands = Array.from(document.querySelectorAll('.island-checkbox:checked'))
@@ -129,12 +130,18 @@ document.addEventListener('DOMContentLoaded', function() {
             
             selectedIslands.forEach(islandId => {
                 const availableQuota = availableQuotas[species.id]?.[islandId] || 0;
+                
+                // Get existing quota value if it exists
+                const existingValue = existingQuotas[species.id]?.[islandId] || '';
+                
                 html += `
                     <tr>
                         <td>${document.getElementById('island_' + islandId).nextElementSibling.textContent}</td>
                         <td>${availableQuota}</td>
                         <td>
-                            <input type="number" name="species_quota[${species.id}][${islandId}]" class="form-control" min="0" max="${availableQuota}">
+                            <input type="number" name="species_quota[${species.id}][${islandId}]" 
+                            class="form-control" min="0" max="${availableQuota}" 
+                            value="${existingValue}">
                         </td>
                     </tr>`;
             });
@@ -152,6 +159,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     licenseTypeSelect.addEventListener('change', updateSpeciesQuotas);
     islandCheckboxes.forEach(checkbox => checkbox.addEventListener('change', updateSpeciesQuotas));
+    
+    // Important: Trigger the function on page load to show existing values
+    if (licenseTypeSelect.value) {
+        updateSpeciesQuotas();
+    }
 });
 </script>
 @endpush

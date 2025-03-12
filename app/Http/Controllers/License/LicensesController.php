@@ -673,6 +673,14 @@ if (!$applicant) {
                 }
             }
         }
+
+        $licenseItems = $license->licenseItems()->get();
+$existingQuotas = [];
+
+foreach ($licenseItems as $item) {
+    // Store the requested quota for each species and island
+    $existingQuotas[$item->species_id][$item->island_id] = $item->requested_quota;
+}
     
         // Optional: Log the available quotas and species by license type for debugging
         \Log::info('Available Quotas:', $availableQuotas);
@@ -687,7 +695,8 @@ if (!$applicant) {
             'islands',
             'availableQuotas',
             'selectedIslands',
-            'selectedSpecies'
+            'selectedSpecies',
+            'licenseItems', 'existingQuotas'
         ));
     }
 
@@ -699,26 +708,26 @@ if (!$applicant) {
      * @param int $id
      * @return Response
      */
-    public function update(Request $request, License $license)
+    public function update(Request $request, $id)
 {
+    $license = License::findOrFail($id);
+    
     // Validate incoming request data
     $data = $request->validate([
         'applicant_id' => 'required|exists:applicants,id',
         'license_type_id' => 'required|exists:license_types,id',
-        'selected_islands' => 'required|array',
-            'selected_islands.*' => 'exists:islands,id',
-        'species' => 'required|array',
-        'species.*.id' => 'required|exists:species,id',
-        'species.*.requested_quota' => 'required|numeric|min:0',
+        'islands' => 'required|array',
+        'islands.*' => 'exists:islands,id',
+        'species_quota' => 'required|array',
     ]);
-
-    // Log validated request data
-    Log::info('License update request data:', $data);
 
     // Update basic license information
     $license->applicant_id = $data['applicant_id'];
     $license->license_type_id = $data['license_type_id'];
     $license->updated_by = Auth::id() ?? null;
+
+    // Sync islands
+    $license->islands()->sync($data['islands']);
 
     // Initialize total fee
     $totalLicenseFee = 0;
@@ -726,35 +735,28 @@ if (!$applicant) {
     // Delete existing license items
     $license->licenseItems()->delete();
 
-    // Handle species
-    foreach ($data['species'] as $speciesInput) {
-        $species = Species::find($speciesInput['id']);
-        $quantity = $speciesInput['requested_quota'];
-
-        // Calculate total price for the species
-        $speciesFee = $quantity * $species->unit_price;
-        $totalLicenseFee += $speciesFee;
-
-        // Log species details
-        Log::info('Processing updated species:', [
-            'species_id' => $species->id,
-            'quantity' => $quantity,
-            'unit_price' => $species->unit_price,
-            'total_price' => $speciesFee
-        ]);
-
-        $updatedBy = Auth::check() ? Auth::id() : null;
-        $creatorType = Auth::check() ? 'user' : 'guest';
+    // Process species quotas
+    foreach ($data['species_quota'] as $speciesId => $islandQuotas) {
+        $species = Species::find($speciesId);
         
-        // Create new license items
-        $license->licenseItems()->create([
-            'species_id' => $species->id,
-            'requested_quota' => $quantity,
-            'unit_price' => $species->unit_price,
-            'total_price' => $speciesFee,
-            'created_by' => $updatedBy,
-            'creator_type' => $creatorType,
-        ]);
+        foreach ($islandQuotas as $islandId => $quantity) {
+            if (empty($quantity)) continue;
+            
+            // Calculate total price for the species
+            $speciesFee = $quantity * $species->unit_price;
+            $totalLicenseFee += $speciesFee;
+
+            // Create new license items
+            $license->licenseItems()->create([
+                'species_id' => $speciesId,
+                'island_id' => $islandId,
+                'requested_quota' => $quantity,
+                'unit_price' => $species->unit_price,
+                'total_price' => $speciesFee,
+                'created_by' => Auth::id(),
+                'creator_type' => 'user',
+            ]);
+        }
     }
 
     // Calculate VAT (12.5%)
@@ -786,13 +788,15 @@ if (!$applicant) {
     // Log total fee update
     Log::info('Total license fee updated:', [
         'license_id' => $license->id,
-        'total_fee' => $license->total_fee
+        'total_fee' => $license->total_fee,
+        'vat_amount' => $license->vat_amount,
+        'total_with_vat' => $license->total_amount_with_vat
     ]);
 
     // Check if the user is authenticated
     if (Auth::check()) {
-        // For authenticated users, redirect to the invoice page
-        return redirect()->route('license.licenses.index', $license->id)
+        // For authenticated users, redirect to the index page
+        return redirect()->route('license.licenses.index')
                ->with('success', 'License updated successfully.');
     } else {
         // For non-authenticated users, redirect to home with thank you modal
@@ -801,7 +805,6 @@ if (!$applicant) {
                ->with('success', 'Your application has been updated successfully.');
     }
 }
-
     /**
      * Remove the specified license from storage.
      *
